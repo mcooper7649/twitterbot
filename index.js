@@ -13,14 +13,14 @@ const client = new TwitterApi({
 
 // DeepSeek API configuration
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"; // Updated endpoint
+const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 
-// Function to generate a programming tip using DeepSeek
+// Function to generate a programming tip with hashtags using DeepSeek
 async function generateProgrammingTip() {
   const messages = [
     {
       role: "user",
-      content: "Generate a unique and concise programming tip in one sentence.",
+      content: `Generate a unique and concise programming tip in one sentence. Include 3-5 relevant hashtags at the end, such as #ProgrammingTips, #JavaScript, or #Python.`,
     },
   ];
 
@@ -30,7 +30,7 @@ async function generateProgrammingTip() {
       {
         model: "deepseek-reasoner", // Use the correct model name
         messages: messages,
-        max_tokens: 50, // Optional: Limit the response length
+        max_tokens: 150, // Optional: Limit the response length
         temperature: 0.7, // Optional: Controls creativity
       },
       {
@@ -56,7 +56,9 @@ async function generateProgrammingTip() {
 async function postProgrammingTip() {
   try {
     const tip = await generateProgrammingTip();
-    await client.v2.tweet(`💡 Daily Programming Tip: ${tip}`);
+
+    // Post the tweet (AI already includes hashtags)
+    await client.v2.tweet(tip);
     console.log(`Tweet posted: ${tip}`);
   } catch (err) {
     console.error("Error posting tweet:", err);
