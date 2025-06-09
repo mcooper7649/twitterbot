@@ -19,9 +19,12 @@ const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 async function generateProgrammingTip() {
   const messages = [
     {
+      role: "system",
+      content: `You are a witty, senior-level full stack developer with a focus on real-world, high-level dev advice. Your tone is clever, insightful, and occasionally sarcastic. Avoid beginner content.`,
+    },
+    {
       role: "user",
-      content:
-        "Generate a unique, one-sentence programming tip. Include 3-5 relevant hashtags at the end, such as #ProgrammingTips, #JavaScript, #Python, etc.",
+      content: `Give me a single-sentence, tweet-length, technical tip that real devs will appreciate. Include 3-5 relevant hashtags like #DevLife #NodeJS #Docker.`,
     },
   ];
 
@@ -29,10 +32,10 @@ async function generateProgrammingTip() {
     const response = await axios.post(
       OPENAI_API_URL,
       {
-        model: "gpt-3.5-turbo",
+        model: "gpt-4-turbo",
         messages,
         max_tokens: 150,
-        temperature: 0.7,
+        temperature: 0.9, // Slightly more creative
       },
       {
         headers: {
