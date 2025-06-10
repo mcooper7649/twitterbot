@@ -111,6 +111,11 @@ async function postProgrammingTip() {
     }
   } catch (err) {
     console.error("❌ Error posting tip:", err.message || err);
+    if (err.code === 403) {
+      console.error(
+        "❌ You are not permitted to perform this action. Check your permissions and access tokens."
+      );
+    }
   }
 }
 
