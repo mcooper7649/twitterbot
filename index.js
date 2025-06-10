@@ -70,7 +70,8 @@ async function postProgrammingTip() {
   }
 }
 // Schedule the bot to post 6 times a day
-cron.schedule("0 4,8,12,16,20,24 * * *", () => {
+// Schedule the bot to post 6 times a day
+cron.schedule("0 4,8,12,16,20,0 * * *", () => {
   console.log("Scheduled post 6 times a day");
   postProgrammingTip();
 });
