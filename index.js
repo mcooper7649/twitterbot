@@ -80,9 +80,9 @@ async function postProgrammingTip() {
   }
 }
 
-// Run at 9 AM daily
-cron.schedule("*/3 * * * *", () => {
-  console.log("🕒 Scheduled post every 3 minutes");
+// Run every hour
+cron.schedule("0 * * * *", () => {
+  console.log("🕒 Scheduled post every hour");
   postProgrammingTip();
 });
 
