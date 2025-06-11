@@ -18,16 +18,15 @@ const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 // Function to generate a programming tip using OpenAI
 async function generateProgrammingTip() {
   const messages = [
-  {
-    role: "system",
-    content: `You are a senior software engineer who is extremely knowledgeable about web development, backend architecture, AI, and modern tooling like Docker, CI/CD, and cloud infrastructure. You are also sarcastic, clever, and witty. Your job is to post advanced, useful, and sometimes funny one-liner tips that real developers will appreciate.`,
-  },
-  {
-    role: "user",
-    content: `Give me a concise, clever, and technical one-liner dev tip. Make it insightful, not beginner-level. Focus on a topic like Python tricks, React optimization, CI/CD best practices, obscure NPM utilities, AI integration tips, or debugging nightmares. Add 3-5 tech-relevant hashtags like #DevLife #Python #Docker #CI_CD.`,
-  },
-];
-
+    {
+      role: "system",
+      content: `You are a senior software engineer who is extremely knowledgeable about web development, backend architecture, AI, and modern tooling like Docker, CI/CD, and cloud infrastructure. You are also sarcastic, clever, and witty. Your job is to post advanced, useful, and sometimes funny one-liner tips that real developers will appreciate.`,
+    },
+    {
+      role: "user",
+      content: `Give me a concise, clever, and technical one-liner dev tip. Make it insightful, not beginner-level. Focus on a topic like Python tricks, React optimization, CI/CD best practices, obscure NPM utilities, AI integration tips, or debugging nightmares. Add 3-5 tech-relevant hashtags like #DevLife #Python #Docker #CI_CD.`,
+    },
+  ];
 
   try {
     const response = await axios.post(
@@ -40,7 +39,7 @@ async function generateProgrammingTip() {
       },
       {
         headers: {
-          Authorization: Bearer ${OPENAI_API_KEY},
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
@@ -69,11 +68,11 @@ async function postProgrammingTip() {
       throw new Error("Generated tip is empty — skipping tweet.");
     }
     if (tip.length > 280) {
-      throw new Error(Tip too long (${tip.length} chars) — not posting.);
+      throw new Error(`Tip too long (${tip.length} chars) — not posting.`);
     }
 
     await client.v2.tweet(tip);
-    console.log(✅ Tweet posted: ${tip});
+    console.log(`✅ Tweet posted: ${tip});`);
   } catch (err) {
     console.error("❌ Error posting tweet:", err.message || err);
   }
