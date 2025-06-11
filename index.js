@@ -15,51 +15,56 @@ const client = new TwitterApi({
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
-// Function to generate a programming tip using OpenAI
-async function generateProgrammingTip() {
+// Generate a high-quality dev tip under 280 chars
+async function generateProgrammingTip(maxRetries = 5) {
   const messages = [
     {
-      role: "system",
-      content: `You are a senior software engineer who is extremely knowledgeable about web development, backend architecture, AI, and modern tooling like Docker, CI/CD, and cloud infrastructure. You are also sarcastic, clever, and witty. Your job is to post advanced, useful, and sometimes funny one-liner tips that real developers will appreciate.`,
-    },
-    {
       role: "user",
-      content: `Give me a concise, clever, and technical one-liner dev tip. Make it insightful, not beginner-level. Focus on a topic like Python tricks, React optimization, CI/CD best practices, obscure NPM utilities, AI integration tips, or debugging nightmares. Add 3-5 tech-relevant hashtags like #DevLife #Python #Docker #CI_CD.`,
+      content:
+        "Generate a unique, advanced one-sentence programming tip (topics can include Python, React, Node.js, CI/CD, AI, DevOps, Docker, etc.) with a witty tone or humor. Must be under 280 characters, including hashtags. End with 3–5 relevant hashtags like #DevTips, #AI, #ReactJS, #NodeJS.",
     },
   ];
 
-  try {
-    const response = await axios.post(
-      OPENAI_API_URL,
-      {
-        model: "gpt-4-turbo",
-        messages,
-        max_tokens: 150,
-        temperature: 0.7,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await axios.post(
+        OPENAI_API_URL,
+        {
+          model: "gpt-4",
+          messages,
+          max_tokens: 150,
+          temperature: 0.85,
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    const tip = response.data?.choices?.[0]?.message?.content?.trim();
-    console.log("Generated tip:", JSON.stringify(tip)); // 👈 Add this
-    console.log("OpenAI raw response:", JSON.stringify(response.data, null, 2));
-    if (!tip) throw new Error("Empty response from OpenAI");
-    return tip;
-  } catch (err) {
-    console.error(
-      "Error generating tip with OpenAI:",
-      err.response?.data || err.message
-    );
-    throw err;
+      const tip = response.data?.choices?.[0]?.message?.content?.trim();
+      console.log(`💡 Attempt ${attempt + 1}: ${tip?.length || 0} chars`);
+      console.log("🧠 Generated tip:", tip);
+
+      if (tip && tip.length <= 280) {
+        return tip;
+      }
+
+      console.warn("⚠️ Tip too long. Retrying...");
+    } catch (err) {
+      console.error("❌ OpenAI error:", err.response?.data || err.message);
+    }
   }
+
+  // Fallback tip if GPT fails or all retries exhausted
+  const fallback =
+    "Always commit before pulling — unless you enjoy resolving merge conflicts while questioning your life choices. #GitTips #DevLife #CodingHumor";
+  console.warn("🚨 All retries failed. Using fallback tip.");
+  return fallback;
 }
 
-// Function to post a programming tip
+// Post the tip to Twitter
 async function postProgrammingTip() {
   try {
     const tip = await generateProgrammingTip();
@@ -67,25 +72,22 @@ async function postProgrammingTip() {
     if (!tip || tip.length === 0) {
       throw new Error("Generated tip is empty — skipping tweet.");
     }
-    if (tip.length > 280) {
-      throw new Error(`Tip too long (${tip.length} chars) — not posting.`);
-    }
 
     await client.v2.tweet(tip);
-    console.log(`✅ Tweet posted: ${tip});`);
+    console.log(`✅ Tweet posted: ${tip}`);
   } catch (err) {
     console.error("❌ Error posting tweet:", err.message || err);
   }
 }
 
-// Schedule the bot to post daily at 9 AM
+// Run at 9 AM daily
 cron.schedule("0 9 * * *", () => {
   console.log("🕘 Scheduled post at 9 AM");
   postProgrammingTip();
 });
 
-// Uncomment for immediate testing
+// Uncomment to test immediately
 (async () => {
-  console.log("🔁 Posting a test tip...");
+  console.log("🔁 Running test post...");
   await postProgrammingTip();
 })();
