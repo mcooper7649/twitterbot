@@ -20,8 +20,12 @@ async function generateProgrammingTip(maxRetries = 5) {
   const messages = [
     {
       role: "user",
-      content:
-        "Generate a unique, advanced one-sentence programming tip (topics can include Python, React, Node.js, CI/CD, AI, DevOps, Docker, etc.) with a witty tone or humor. Must be under 280 characters, including hashtags. End with 3–5 relevant hashtags like #DevTips, #AI, #ReactJS, #NodeJS.",
+      content: `
+Generate a compact, advanced programming tip that includes a code example (topics: Python, React, Node.js, CI/CD, AI, DevOps, Docker, etc.). 
+The entire output must be under 280 characters, including hashtags at the end (3-5 tags). 
+Format: short code with minimal text, witty if possible. 
+Example: "// Reverse string in JS: const rev = str => [...str].reverse().join(''); #JavaScript #DevTips #NodeJS"
+`,
     },
   ];
 
@@ -32,7 +36,7 @@ async function generateProgrammingTip(maxRetries = 5) {
         {
           model: "gpt-4",
           messages,
-          max_tokens: 150,
+          max_tokens: 100, // tighter output
           temperature: 0.85,
         },
         {
@@ -47,19 +51,22 @@ async function generateProgrammingTip(maxRetries = 5) {
       console.log(`💡 Attempt ${attempt + 1}: ${tip?.length || 0} chars`);
       console.log("🧠 Generated tip:", tip);
 
-      if (tip && tip.length <= 280) {
+      // Basic post-filter: check if it contains code (backticks or slashes)
+      const containsCode = /[`\/]/.test(tip);
+
+      if (tip && tip.length <= 280 && containsCode) {
         return tip;
       }
 
-      console.warn("⚠️ Tip too long. Retrying...");
+      console.warn("⚠️ Tip too long or no code found. Retrying...");
     } catch (err) {
       console.error("❌ OpenAI error:", err.response?.data || err.message);
     }
   }
 
-  // Fallback tip if GPT fails or all retries exhausted
+  // Fallback code tip
   const fallback =
-    "Always commit before pulling — unless you enjoy resolving merge conflicts while questioning your life choices. #GitTips #DevLife #CodingHumor";
+    "// Always commit before pulling: git commit -am 'WIP' && git pull --rebase #GitTips #CLI #DevLife";
   console.warn("🚨 All retries failed. Using fallback tip.");
   return fallback;
 }
