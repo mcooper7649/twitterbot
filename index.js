@@ -1,6 +1,8 @@
 const { TwitterApi } = require("twitter-api-v2");
 const cron = require("node-cron");
 const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
 require("dotenv").config();
 
 // Initialize Twitter client
@@ -15,13 +17,35 @@ const client = new TwitterApi({
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
+// File for storing recent tweets
+const RECENT_FILE = path.join(__dirname, "recent_tweets.json");
+const MAX_RECENT = 300;
+
+// Load recent tweets from file
+function loadRecentTweets() {
+  try {
+    const data = fs.readFileSync(RECENT_FILE, "utf8");
+    return JSON.parse(data);
+  } catch (e) {
+    return [];
+  }
+}
+
+// Save recent tweets to file
+function saveRecentTweets(tweets) {
+  fs.writeFileSync(
+    RECENT_FILE,
+    JSON.stringify(tweets.slice(-MAX_RECENT), null, 2)
+  );
+}
+
 // Generate a high-quality dev tip under 280 chars
 async function generateProgrammingTip(maxRetries = 5) {
   const messages = [
     {
       role: "user",
       content: `
-Generate a compact, advanced programming tip that includes a code example (topics: Python, React, Node.js, CI/CD, AI, DevOps, Docker, etc.). 
+Generate a compact, advanced programming tip that includes a code example 50% of the time. (topics: Python, React, Node.js, CI/CD, AI, Docker, Next, Package Managers and Newest Developments in Programming). 
 The entire output must be under 280 characters, including hashtags at the end (3-5 tags). 
 Format: short code with minimal text, witty if possible. 
 Example: "// Reverse string in JS: const rev = str => [...str].reverse().join(''); #JavaScript #DevTips #NodeJS"
@@ -36,7 +60,7 @@ Example: "// Reverse string in JS: const rev = str => [...str].reverse().join(''
         {
           model: "gpt-4",
           messages,
-          max_tokens: 100, // tighter output
+          max_tokens: 100,
           temperature: 0.85,
         },
         {
@@ -51,7 +75,6 @@ Example: "// Reverse string in JS: const rev = str => [...str].reverse().join(''
       console.log(`💡 Attempt ${attempt + 1}: ${tip?.length || 0} chars`);
       console.log("🧠 Generated tip:", tip);
 
-      // Basic post-filter: check if it contains code (backticks or slashes)
       const containsCode = /[`\/]/.test(tip);
 
       if (tip && tip.length <= 280 && containsCode) {
@@ -64,7 +87,6 @@ Example: "// Reverse string in JS: const rev = str => [...str].reverse().join(''
     }
   }
 
-  // Fallback code tip
   const fallback =
     "// Always commit before pulling: git commit -am 'WIP' && git pull --rebase #GitTips #CLI #DevLife";
   console.warn("🚨 All retries failed. Using fallback tip.");
@@ -92,7 +114,7 @@ async function postWithRateLimitWait(tweet) {
             waitTime / 1000
           )}s)...`
         );
-        await new Promise((res) => setTimeout(res, waitTime + 1000)); // 1s buffer
+        await new Promise((res) => setTimeout(res, waitTime + 1000));
       }
 
       try {
@@ -115,13 +137,21 @@ async function postWithRateLimitWait(tweet) {
 // Main function
 async function postProgrammingTip() {
   try {
+    const recent = loadRecentTweets();
     const tip = await generateProgrammingTip();
 
     if (!tip || tip.length === 0) {
       throw new Error("Generated tip is empty — skipping tweet.");
     }
 
+    if (recent.includes(tip)) {
+      console.warn("⚠️ Duplicate tip detected. Skipping post.");
+      return;
+    }
+
     await postWithRateLimitWait(tip);
+    recent.push(tip);
+    saveRecentTweets(recent);
   } catch (err) {
     console.error("❌ Error posting tweet:", err.message || err);
   }
