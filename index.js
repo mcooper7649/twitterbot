@@ -3,6 +3,7 @@ const cron = require("node-cron");
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
+const stringSimilarity = require("string-similarity");
 require("dotenv").config();
 
 // Initialize Twitter client
@@ -144,8 +145,22 @@ async function postProgrammingTip() {
       throw new Error("Generated tip is empty — skipping tweet.");
     }
 
+    // Check for exact duplicate
     if (recent.includes(tip)) {
       console.warn("⚠️ Duplicate tip detected. Skipping post.");
+      return;
+    }
+
+    // Check for near-duplicate (similarity > 0.85)
+    const SIMILARITY_THRESHOLD = 0.85;
+    const isSimilar = recent.some(
+      (prev) =>
+        stringSimilarity.compareTwoStrings(tip, prev) > SIMILARITY_THRESHOLD
+    );
+    if (isSimilar) {
+      console.warn(
+        "⚠️ Near-duplicate tip detected (similarity > 85%). Skipping post."
+      );
       return;
     }
 

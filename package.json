@@ -13,6 +13,7 @@
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",
     "node-cron": "^3.0.3",
+    "string-similarity": "^4.0.4",
     "twitter-api-v2": "^1.19.0"
   }
 }
