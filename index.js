@@ -5,7 +5,13 @@ const stringSimilarity = require("string-similarity");
 const { createCanvas } = require("canvas");
 const config = require("./config");
 const utils = require("./utils");
+const interactive = require("./interactive");
+const community = require("./community");
+const analytics = require("./analytics");
 require("dotenv").config();
+
+// Initialize analytics
+analytics.initializeAnalytics();
 
 // Initialize Twitter client
 const client = new TwitterApi({
@@ -192,7 +198,8 @@ Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in rang
             text: fullTweet,
             code: code,
             topic: topic,
-            hashtags: hashtags
+            hashtags: hashtags,
+            contentType: "tips"
           };
         } else {
           console.warn(`⚠️ Validation failed: ${validation.reason}`);
@@ -210,11 +217,41 @@ Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in rang
     text: `// Python tip: Use list comprehensions\nnumbers = [x*2 for x in range(10)] #Python #Coding #Programming`,
     code: "numbers = [x*2 for x in range(10)]",
     topic: TOPICS.PYTHON,
-    hashtags: ["#Python", "#Coding", "#Programming"]
+    hashtags: ["#Python", "#Coding", "#Programming"],
+    contentType: "tips"
   };
   
   console.warn("🚨 All retries failed. Using fallback tip.");
   return fallback;
+}
+
+// Generate interactive content
+async function generateInteractiveContent(topic) {
+  const interactiveData = interactive.generateInteractiveContent(topic);
+  
+  return {
+    text: `${interactiveData.content} ${interactiveData.hashtags.join(' ')}`,
+    code: "",
+    topic: topic,
+    hashtags: interactiveData.hashtags,
+    contentType: "interactive",
+    interactiveType: interactiveData.type,
+    options: interactiveData.options || null
+  };
+}
+
+// Generate community content
+async function generateCommunityContent(topic) {
+  const communityData = community.generateCommunityContent(topic);
+  
+  return {
+    text: `${communityData.content} ${communityData.hashtags.join(' ')}`,
+    code: "",
+    topic: topic,
+    hashtags: communityData.hashtags,
+    contentType: "community",
+    communityType: communityData.type
+  };
 }
 
 // Post tweet with media and wait for rate limit reset if needed
@@ -241,6 +278,10 @@ async function postWithRateLimitWait(tweetData) {
     await client.v2.tweet(tweetData.text, tweetOptions);
     
     utils.logTweetPosted(tweetData);
+    
+    // Track the post
+    analytics.trackPost(tweetData.topic, tweetData.contentType, tweetData.hashtags);
+    
   } catch (err) {
     const isRateLimit = err.code === 429 || err.response?.status === 429;
 
@@ -277,6 +318,10 @@ async function postWithRateLimitWait(tweetData) {
         const tweetOptions = mediaId ? { media: { media_ids: [mediaId] } } : {};
         await client.v2.tweet(tweetData.text, tweetOptions);
         utils.logTweetPosted(tweetData);
+        
+        // Track the post
+        analytics.trackPost(tweetData.topic, tweetData.contentType, tweetData.hashtags);
+        
       } catch (retryErr) {
         utils.logError("Retry after rate limit", retryErr);
         throw retryErr;
@@ -291,37 +336,72 @@ async function postWithRateLimitWait(tweetData) {
 // Main function
 async function postProgrammingTip() {
   try {
+    // Check analytics limits
+    if (!analytics.shouldPostBasedOnAnalytics()) {
+      return;
+    }
+    
     const recent = utils.loadRecentTweets();
-    const tipData = await generateProgrammingTip();
+    const topic = utils.getRandomTopic(TOPICS);
+    
+    // Decide content type based on probabilities
+    const contentType = decideContentType();
+    let tweetData;
+    
+    switch (contentType) {
+      case "interactive":
+        tweetData = await generateInteractiveContent(topic);
+        break;
+      case "community":
+        tweetData = await generateCommunityContent(topic);
+        break;
+      default:
+        tweetData = await generateProgrammingTip();
+        break;
+    }
 
-    if (!tipData || !tipData.text) {
-      throw new Error("Generated tip is empty — skipping tweet.");
+    if (!tweetData || !tweetData.text) {
+      throw new Error("Generated content is empty — skipping tweet.");
     }
 
     // Check for exact duplicate
-    if (recent.includes(tipData.text)) {
-      console.warn("⚠️ Duplicate tip detected. Skipping post.");
+    if (recent.includes(tweetData.text)) {
+      console.warn("⚠️ Duplicate content detected. Skipping post.");
       return;
     }
 
     // Check for near-duplicate (similarity > threshold)
     const isSimilar = recent.some(
       (prev) =>
-        stringSimilarity.compareTwoStrings(tipData.text, prev) > config.SIMILARITY_THRESHOLD
+        stringSimilarity.compareTwoStrings(tweetData.text, prev) > config.SIMILARITY_THRESHOLD
     );
     if (isSimilar) {
       console.warn(
-        `⚠️ Near-duplicate tip detected (similarity > ${config.SIMILARITY_THRESHOLD * 100}%). Skipping post.`
+        `⚠️ Near-duplicate content detected (similarity > ${config.SIMILARITY_THRESHOLD * 100}%). Skipping post.`
       );
       return;
     }
 
-    await postWithRateLimitWait(tipData);
-    recent.push(tipData.text);
+    await postWithRateLimitWait(tweetData);
+    recent.push(tweetData.text);
     utils.saveRecentTweets(recent);
     
   } catch (err) {
     utils.logError("Posting tweet", err);
+  }
+}
+
+// Decide content type based on probabilities
+function decideContentType() {
+  const rand = Math.random();
+  
+  // 65% tips, 20% interactive, 15% community
+  if (rand < 0.65) {
+    return "tips";
+  } else if (rand < 0.85) {
+    return "interactive";
+  } else {
+    return "community";
   }
 }
 
@@ -335,4 +415,7 @@ cron.schedule(config.SCHEDULE, () => {
 (async () => {
   console.log("🔁 Running test post...");
   await postProgrammingTip();
+  
+  // Generate performance report
+  analytics.generatePerformanceReport();
 })();

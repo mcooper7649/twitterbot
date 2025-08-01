@@ -42,5 +42,36 @@ module.exports = {
   TRENDING_HASHTAGS: [
     "#TechTwitter", "#Developer", "#Coding", "#Programming", "#SoftwareEngineering",
     "#WebDevelopment", "#FullStack", "#OpenSource", "#TechCommunity", "#CodeNewbie"
-  ]
+  ],
+  
+  // Phase 2: Content distribution
+  CONTENT_DISTRIBUTION: {
+    TIPS: 0.65,        // 65% programming tips
+    INTERACTIVE: 0.20,  // 20% polls, challenges, questions
+    COMMUNITY: 0.15     // 15% community engagement
+  },
+  
+  // Phase 2: Interactive content settings
+  INTERACTIVE: {
+    POLL_CHANCE: 0.4,      // 40% chance of polls
+    CHALLENGE_CHANCE: 0.3,  // 30% chance of code challenges
+    QUESTION_CHANCE: 0.2,   // 20% chance of questions
+    QUIZ_CHANCE: 0.1        // 10% chance of quizzes
+  },
+  
+  // Phase 2: Community engagement settings
+  COMMUNITY: {
+    ENCOURAGEMENT_CHANCE: 0.4,  // 40% chance of encouragement
+    TIP_REQUEST_CHANCE: 0.3,    // 30% chance of tip requests
+    DISCUSSION_CHANCE: 0.2,     // 20% chance of discussions
+    CELEBRATION_CHANCE: 0.1     // 10% chance of celebrations
+  },
+  
+  // Phase 2: Analytics settings
+  ANALYTICS: {
+    MAX_DAILY_POSTS: 8,         // Maximum posts per day
+    PERFORMANCE_REPORT_DAYS: 7,  // Days to include in reports
+    TRACK_ENGAGEMENT: true,      // Track engagement metrics
+    OPTIMAL_POSTING_HOURS: [9, 12, 15, 18, 21] // Recommended posting hours
+  }
 }; 
