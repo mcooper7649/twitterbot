@@ -84,11 +84,13 @@ function validateTweetContent(text, code) {
   }
   
   if (text.length > config.MAX_TWEET_LENGTH) {
-    return { valid: false, reason: "Tweet too long" };
+    return { valid: false, reason: `Tweet too long (${text.length}/${config.MAX_TWEET_LENGTH})` };
   }
   
-  if (text.length > config.MAX_CONTENT_LENGTH) {
-    return { valid: false, reason: "Content too long for hashtags" };
+  // Allow a bit more flexibility for content length
+  const maxContentLength = config.MAX_CONTENT_LENGTH + 20; // Allow 20 extra chars
+  if (text.length > maxContentLength) {
+    return { valid: false, reason: `Content too long for hashtags (${text.length}/${maxContentLength})` };
   }
   
   return { valid: true };

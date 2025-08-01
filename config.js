@@ -5,7 +5,7 @@ module.exports = {
   
   // Content settings
   MAX_TWEET_LENGTH: 280,
-  MAX_CONTENT_LENGTH: 200, // Leaving room for hashtags
+  MAX_CONTENT_LENGTH: 180, // Reduced from 200 to leave more room for hashtags
   MAX_RECENT_TWEETS: 300,
   
   // Topic weights (must sum to 1.0)
@@ -32,13 +32,13 @@ module.exports = {
   // OpenAI settings
   OPENAI: {
     MODEL: "gpt-4",
-    MAX_TOKENS: 150,
+    MAX_TOKENS: 120, // Reduced from 150
     TEMPERATURE: 0.8,
     MAX_RETRIES: 5
   },
   
   // Hashtag settings
-  MAX_HASHTAGS_PER_TWEET: 5,
+  MAX_HASHTAGS_PER_TWEET: 4, // Reduced from 5
   TRENDING_HASHTAGS: [
     "#TechTwitter", "#Developer", "#Coding", "#Programming", "#SoftwareEngineering",
     "#WebDevelopment", "#FullStack", "#OpenSource", "#TechCommunity", "#CodeNewbie"

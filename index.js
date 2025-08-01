@@ -87,18 +87,18 @@ async function createCodeImage(code, topic) {
     ctx.fillStyle = "#1e1e1e";
     ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
     
-    // Header
+    // Header - Use system fonts that are more likely to be available
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 24px 'Courier New'";
+    ctx.font = "bold 24px Arial, sans-serif";
     ctx.fillText(`${topic.name} Tip`, 20, 40);
     
     // Code background
     ctx.fillStyle = "#2d2d2d";
     ctx.fillRect(20, 60, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 80);
     
-    // Code text
+    // Code text - Use monospace font that's more reliable
     ctx.fillStyle = "#d4d4d4";
-    ctx.font = "16px 'Courier New'";
+    ctx.font = "16px 'Courier New', monospace, Arial";
     
     const lines = code.split('\n');
     const maxLines = config.IMAGE.MAX_CODE_LINES;
@@ -118,12 +118,13 @@ async function createCodeImage(code, topic) {
     
     // Footer
     ctx.fillStyle = "#888888";
-    ctx.font = "12px Arial";
+    ctx.font = "12px Arial, sans-serif";
     ctx.fillText("Follow for more dev tips! 👨‍💻", 20, config.IMAGE.HEIGHT - 20);
     
     return canvas.toBuffer('image/png');
   } catch (error) {
     console.error("Error creating code image:", error);
+    // Return null if image creation fails, bot will post text-only
     return null;
   }
 }
@@ -146,8 +147,10 @@ Requirements:
 - Make it engaging and actionable
 - Focus on ${topic.name} specifically
 - Be concise but informative
+- Keep the explanation brief - focus on the code example
 
-Format: Brief explanation + code example`
+Format: Brief explanation + code example
+Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in range(10)]"`
     },
   ];
 
@@ -204,7 +207,7 @@ Format: Brief explanation + code example`
 
   // Fallback
   const fallback = {
-    text: `// Quick tip: Use list comprehensions for cleaner Python code\nnumbers = [x*2 for x in range(10)] #Python #Coding #Programming`,
+    text: `// Python tip: Use list comprehensions\nnumbers = [x*2 for x in range(10)] #Python #Coding #Programming`,
     code: "numbers = [x*2 for x in range(10)]",
     topic: TOPICS.PYTHON,
     hashtags: ["#Python", "#Coding", "#Programming"]
