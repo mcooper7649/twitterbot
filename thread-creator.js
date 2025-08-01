@@ -123,7 +123,7 @@ function generateTrendingThread(topic) {
     title: `🔥 ${selectedTopic} with ${topic.name}: Quick Guide`,
     tweets: [
       `1/4 🔥 ${selectedTopic} with ${topic.name}: Quick Guide\n\nLet's explore how to use ${selectedTopic} in your ${topic.name} projects! #${selectedTopic.replace(/\s+/g, '')} #${topic.name}`,
-      `2/4 Getting started:\n\n```${topic.name.toLowerCase()}\n# Basic setup for ${selectedTopic}\nimport ${selectedTopic.toLowerCase()}\n\n# Initialize\nconfig = ${selectedTopic.toLowerCase()}.Config()\n```\n#${selectedTopic.replace(/\s+/g, '')} #${topic.name}`,
+      `2/4 Getting started:\n\n\`\`\`${topic.name.toLowerCase()}\n# Basic setup for ${selectedTopic}\nimport ${selectedTopic.toLowerCase()}\n\n# Initialize\nconfig = ${selectedTopic.toLowerCase()}.Config()\n\`\`\`\n#${selectedTopic.replace(/\s+/g, '')} #${topic.name}`,
       `3/4 Best practices:\n\n✅ Start simple\n✅ Follow documentation\n✅ Test thoroughly\n✅ Keep it maintainable\n\n#${selectedTopic.replace(/\s+/g, '')} #${topic.name} #BestPractices`,
       `4/4 Pro tip: ${selectedTopic} works great with ${topic.name}!\n\nShare your experience below! 🚀\n\n#${selectedTopic.replace(/\s+/g, '')} #${topic.name} #TechTwitter #DevCommunity`
     ],
