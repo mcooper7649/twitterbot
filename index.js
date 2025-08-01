@@ -8,10 +8,13 @@ const utils = require("./utils");
 const interactive = require("./interactive");
 const community = require("./community");
 const analytics = require("./analytics");
+const advancedAnalytics = require("./advanced-analytics");
+const threadCreator = require("./thread-creator");
 require("dotenv").config();
 
 // Initialize analytics
 analytics.initializeAnalytics();
+advancedAnalytics.initializeAdvancedAnalytics();
 
 // Initialize Twitter client
 const client = new TwitterApi({
@@ -135,10 +138,14 @@ async function createCodeImage(code, topic) {
   }
 }
 
-// Generate a high-quality dev tip with topic rotation
+// Generate a high-quality dev tip with topic rotation and A/B testing
 async function generateProgrammingTip(maxRetries = config.OPENAI.MAX_RETRIES) {
   const topic = utils.getRandomTopic(TOPICS);
   utils.logTopicSelection(topic);
+  
+  // Get A/B test optimization
+  const optimization = advancedAnalytics.optimizeContent(topic, "tips");
+  const maxLength = optimization.maxLength;
   
   const prompt = topic.prompts[Math.floor(Math.random() * topic.prompts.length)];
   
@@ -148,7 +155,7 @@ async function generateProgrammingTip(maxRetries = config.OPENAI.MAX_RETRIES) {
       content: `${prompt}
       
 Requirements:
-- Must be under ${config.MAX_CONTENT_LENGTH} characters (leaving room for hashtags)
+- Must be under ${maxLength} characters (leaving room for hashtags)
 - Include a practical code example
 - Make it engaging and actionable
 - Focus on ${topic.name} specifically
@@ -181,12 +188,12 @@ Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in rang
       const tip = response.data?.choices?.[0]?.message?.content?.trim();
       utils.logTweetGeneration(attempt + 1, topic, tip?.length || 0);
 
-      if (tip && tip.length <= config.MAX_CONTENT_LENGTH) {
+      if (tip && tip.length <= maxLength) {
         // Extract code from the tip
         const code = utils.extractCodeFromText(tip);
         
-        // Generate hashtags
-        const hashtags = utils.generateHashtags(topic, tip);
+        // Generate hashtags with optimization
+        const hashtags = utils.generateHashtags(topic, tip).slice(0, optimization.hashtagCount);
         const hashtagString = hashtags.join(' ');
         
         const fullTweet = `${tip} ${hashtagString}`;
@@ -199,7 +206,8 @@ Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in rang
             code: code,
             topic: topic,
             hashtags: hashtags,
-            contentType: "tips"
+            contentType: "tips",
+            optimization: optimization
           };
         } else {
           console.warn(`⚠️ Validation failed: ${validation.reason}`);
@@ -218,15 +226,33 @@ Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in rang
     code: "numbers = [x*2 for x in range(10)]",
     topic: TOPICS.PYTHON,
     hashtags: ["#Python", "#Coding", "#Programming"],
-    contentType: "tips"
+    contentType: "tips",
+    optimization: optimization
   };
   
   console.warn("🚨 All retries failed. Using fallback tip.");
   return fallback;
 }
 
-// Generate interactive content
+// Generate interactive content with trending topics
 async function generateInteractiveContent(topic) {
+  // Check if we should use trending topics
+  const shouldUseTrending = Math.random() < 0.3; // 30% chance
+  
+  if (shouldUseTrending) {
+    const trendingContent = advancedAnalytics.generateTrendingContent(topic);
+    return {
+      text: `${trendingContent.content} ${trendingContent.hashtags.join(' ')}`,
+      code: "",
+      topic: topic,
+      hashtags: trendingContent.hashtags,
+      contentType: "interactive",
+      interactiveType: "trending",
+      isTrending: trendingContent.isTrending,
+      isSeasonal: trendingContent.isSeasonal
+    };
+  }
+  
   const interactiveData = interactive.generateInteractiveContent(topic);
   
   return {
@@ -240,8 +266,24 @@ async function generateInteractiveContent(topic) {
   };
 }
 
-// Generate community content
+// Generate community content with seasonal awareness
 async function generateCommunityContent(topic) {
+  const seasonalEvents = advancedAnalytics.getSeasonalEvents();
+  const shouldUseSeasonal = seasonalEvents.length > 0 && Math.random() < 0.4; // 40% chance if seasonal events exist
+  
+  if (shouldUseSeasonal) {
+    const seasonalEvent = seasonalEvents[Math.floor(Math.random() * seasonalEvents.length)];
+    return {
+      text: `🎉 ${seasonalEvent} is here! What are you building with ${topic.name} this month? Share your projects below! 🚀 #${seasonalEvent.replace(/\s+/g, '')} #${topic.name} #DevCommunity`,
+      code: "",
+      topic: topic,
+      hashtags: [`#${seasonalEvent.replace(/\s+/g, '')}`, `#${topic.name}`, "#DevCommunity"],
+      contentType: "community",
+      communityType: "seasonal",
+      isSeasonal: true
+    };
+  }
+  
   const communityData = community.generateCommunityContent(topic);
   
   return {
@@ -251,6 +293,21 @@ async function generateCommunityContent(topic) {
     hashtags: communityData.hashtags,
     contentType: "community",
     communityType: communityData.type
+  };
+}
+
+// Generate trending content
+async function generateTrendingContent(topic) {
+  const trendingData = advancedAnalytics.generateTrendingContent(topic);
+  
+  return {
+    text: `${trendingData.content} ${trendingData.hashtags.join(' ')}`,
+    code: "",
+    topic: topic,
+    hashtags: trendingData.hashtags,
+    contentType: "trending",
+    isTrending: trendingData.isTrending,
+    isSeasonal: trendingData.isSeasonal
   };
 }
 
@@ -279,8 +336,38 @@ async function postWithRateLimitWait(tweetData) {
     
     utils.logTweetPosted(tweetData);
     
-    // Track the post
+    // Track the post with advanced analytics
     analytics.trackPost(tweetData.topic, tweetData.contentType, tweetData.hashtags);
+    
+    // Track performance metrics
+    const metrics = advancedAnalytics.simulateEngagementMetrics(
+      tweetData.contentType, 
+      tweetData.topic, 
+      tweetData.hashtags
+    );
+    advancedAnalytics.trackPerformanceMetrics(
+      tweetData.contentType, 
+      tweetData.topic, 
+      tweetData.hashtags, 
+      metrics
+    );
+    
+    // Track A/B tests if applicable
+    if (tweetData.optimization) {
+      advancedAnalytics.trackABTest(
+        "Content Length Test", 
+        tweetData.optimization.maxLength <= 150 ? "A" : tweetData.optimization.maxLength <= 180 ? "B" : "C",
+        "engagement_rate",
+        metrics.engagement_rate
+      );
+      
+      advancedAnalytics.trackABTest(
+        "Hashtag Count Test",
+        tweetData.optimization.hashtagCount <= 3 ? "A" : tweetData.optimization.hashtagCount <= 4 ? "B" : "C",
+        "reach",
+        metrics.reach
+      );
+    }
     
   } catch (err) {
     const isRateLimit = err.code === 429 || err.response?.status === 429;
@@ -322,6 +409,19 @@ async function postWithRateLimitWait(tweetData) {
         // Track the post
         analytics.trackPost(tweetData.topic, tweetData.contentType, tweetData.hashtags);
         
+        // Track performance metrics
+        const metrics = advancedAnalytics.simulateEngagementMetrics(
+          tweetData.contentType, 
+          tweetData.topic, 
+          tweetData.hashtags
+        );
+        advancedAnalytics.trackPerformanceMetrics(
+          tweetData.contentType, 
+          tweetData.topic, 
+          tweetData.hashtags, 
+          metrics
+        );
+        
       } catch (retryErr) {
         utils.logError("Retry after rate limit", retryErr);
         throw retryErr;
@@ -333,7 +433,7 @@ async function postWithRateLimitWait(tweetData) {
   }
 }
 
-// Main function
+// Main function with Phase 3 features
 async function postProgrammingTip() {
   try {
     // Check analytics limits
@@ -344,11 +444,24 @@ async function postProgrammingTip() {
     const recent = utils.loadRecentTweets();
     const topic = utils.getRandomTopic(TOPICS);
     
-    // Decide content type based on probabilities
+    // Check if we should create a thread (10% chance)
+    if (threadCreator.shouldCreateThread()) {
+      const thread = threadCreator.generateThread(topic);
+      if (thread) {
+        console.log("🧵 Creating thread instead of single tweet");
+        await threadCreator.postThread(thread, client);
+        return;
+      }
+    }
+    
+    // Decide content type based on probabilities with Phase 3 adjustments
     const contentType = decideContentType();
     let tweetData;
     
     switch (contentType) {
+      case "trending":
+        tweetData = await generateTrendingContent(topic);
+        break;
       case "interactive":
         tweetData = await generateInteractiveContent(topic);
         break;
@@ -391,17 +504,19 @@ async function postProgrammingTip() {
   }
 }
 
-// Decide content type based on probabilities
+// Decide content type based on probabilities with Phase 3 features
 function decideContentType() {
   const rand = Math.random();
   
-  // 65% tips, 20% interactive, 15% community
-  if (rand < 0.65) {
+  // Phase 3 distribution: 55% tips, 20% interactive, 15% community, 10% trending
+  if (rand < 0.55) {
     return "tips";
-  } else if (rand < 0.85) {
+  } else if (rand < 0.75) {
     return "interactive";
-  } else {
+  } else if (rand < 0.90) {
     return "community";
+  } else {
+    return "trending";
   }
 }
 
@@ -416,6 +531,7 @@ cron.schedule(config.SCHEDULE, () => {
   console.log("🔁 Running test post...");
   await postProgrammingTip();
   
-  // Generate performance report
+  // Generate performance reports
   analytics.generatePerformanceReport();
+  advancedAnalytics.generateAdvancedPerformanceReport();
 })();
