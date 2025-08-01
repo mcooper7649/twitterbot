@@ -1,9 +1,10 @@
 const { TwitterApi } = require("twitter-api-v2");
 const cron = require("node-cron");
 const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
 const stringSimilarity = require("string-similarity");
+const { createCanvas } = require("canvas");
+const config = require("./config");
+const utils = require("./utils");
 require("dotenv").config();
 
 // Initialize Twitter client
@@ -18,39 +19,135 @@ const client = new TwitterApi({
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
-// File for storing recent tweets
-const RECENT_FILE = path.join(__dirname, "recent_tweets.json");
-const MAX_RECENT = 300;
+// Topic rotation system
+const TOPICS = {
+  PYTHON: {
+    name: "Python",
+    prompts: [
+      "Generate a compact Python tip with code example. Focus on: list comprehensions, decorators, context managers, or modern Python features. Include a short code snippet.",
+      "Create a Python optimization tip. Topics: performance, memory usage, async programming, or best practices. Include code example.",
+      "Share a Python debugging or testing tip. Include practical code example."
+    ],
+    hashtags: ["#Python", "#PythonDev", "#Coding", "#Programming"]
+  },
+  JAVASCRIPT: {
+    name: "JavaScript",
+    prompts: [
+      "Generate a compact JavaScript tip with code example. Focus on: ES6+ features, async/await, functional programming, or modern JS patterns.",
+      "Create a JavaScript optimization tip. Topics: performance, memory, DOM manipulation, or best practices. Include code example.",
+      "Share a JavaScript debugging or testing tip. Include practical code example."
+    ],
+    hashtags: ["#JavaScript", "#JS", "#WebDev", "#Coding"]
+  },
+  REACT: {
+    name: "React",
+    prompts: [
+      "Generate a compact React tip with code example. Focus on: hooks, performance, state management, or modern React patterns.",
+      "Create a React optimization tip. Topics: rendering optimization, custom hooks, or best practices. Include code example.",
+      "Share a React debugging or testing tip. Include practical code example."
+    ],
+    hashtags: ["#React", "#ReactJS", "#Frontend", "#WebDev"]
+  },
+  NODEJS: {
+    name: "Node.js",
+    prompts: [
+      "Generate a compact Node.js tip with code example. Focus on: async programming, streams, performance, or best practices.",
+      "Create a Node.js optimization tip. Topics: memory management, clustering, or debugging. Include code example.",
+      "Share a Node.js security or deployment tip. Include practical code example."
+    ],
+    hashtags: ["#NodeJS", "#Node", "#Backend", "#JavaScript"]
+  },
+  DOCKER: {
+    name: "Docker",
+    prompts: [
+      "Generate a compact Docker tip with code example. Focus on: Dockerfile optimization, multi-stage builds, or best practices.",
+      "Create a Docker optimization tip. Topics: image size, security, or performance. Include code example.",
+      "Share a Docker debugging or deployment tip. Include practical example."
+    ],
+    hashtags: ["#Docker", "#DevOps", "#Containers", "#Deployment"]
+  },
+  GIT: {
+    name: "Git",
+    prompts: [
+      "Generate a compact Git tip with command example. Focus on: advanced commands, workflow optimization, or best practices.",
+      "Create a Git optimization tip. Topics: branching strategies, commit messages, or collaboration. Include command example.",
+      "Share a Git debugging or workflow tip. Include practical command example."
+    ],
+    hashtags: ["#Git", "#VersionControl", "#DevOps", "#Coding"]
+  }
+};
 
-// Load recent tweets from file
-function loadRecentTweets() {
+// Create visual content (code snippet image)
+async function createCodeImage(code, topic) {
   try {
-    const data = fs.readFileSync(RECENT_FILE, "utf8");
-    return JSON.parse(data);
-  } catch (e) {
-    return [];
+    const canvas = createCanvas(config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+    const ctx = canvas.getContext("2d");
+    
+    // Background
+    ctx.fillStyle = "#1e1e1e";
+    ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+    
+    // Header
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 24px 'Courier New'";
+    ctx.fillText(`${topic.name} Tip`, 20, 40);
+    
+    // Code background
+    ctx.fillStyle = "#2d2d2d";
+    ctx.fillRect(20, 60, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 80);
+    
+    // Code text
+    ctx.fillStyle = "#d4d4d4";
+    ctx.font = "16px 'Courier New'";
+    
+    const lines = code.split('\n');
+    const maxLines = config.IMAGE.MAX_CODE_LINES;
+    const displayLines = lines.slice(0, maxLines);
+    
+    displayLines.forEach((line, index) => {
+      const y = 85 + (index * 20);
+      if (y < config.IMAGE.HEIGHT - 30) {
+        ctx.fillText(line.substring(0, config.IMAGE.MAX_LINE_LENGTH), 30, y);
+      }
+    });
+    
+    if (lines.length > maxLines) {
+      ctx.fillStyle = "#888888";
+      ctx.fillText("...", 30, 85 + (maxLines * 20));
+    }
+    
+    // Footer
+    ctx.fillStyle = "#888888";
+    ctx.font = "12px Arial";
+    ctx.fillText("Follow for more dev tips! 👨‍💻", 20, config.IMAGE.HEIGHT - 20);
+    
+    return canvas.toBuffer('image/png');
+  } catch (error) {
+    console.error("Error creating code image:", error);
+    return null;
   }
 }
 
-// Save recent tweets to file
-function saveRecentTweets(tweets) {
-  fs.writeFileSync(
-    RECENT_FILE,
-    JSON.stringify(tweets.slice(-MAX_RECENT), null, 2)
-  );
-}
-
-// Generate a high-quality dev tip under 280 chars
-async function generateProgrammingTip(maxRetries = 5) {
+// Generate a high-quality dev tip with topic rotation
+async function generateProgrammingTip(maxRetries = config.OPENAI.MAX_RETRIES) {
+  const topic = utils.getRandomTopic(TOPICS);
+  utils.logTopicSelection(topic);
+  
+  const prompt = topic.prompts[Math.floor(Math.random() * topic.prompts.length)];
+  
   const messages = [
     {
       role: "user",
-      content: `
-Generate a compact, advanced programming tip that includes a code example 50% of the time. (topics: Python, React, Node.js, CI/CD, AI, Docker, Next, Package Managers and Newest Developments in Programming). 
-The entire output must be under 280 characters, including hashtags at the end (3-5 tags). 
-Format: short code with minimal text, witty if possible. 
-Example: "// Reverse string in JS: const rev = str => [...str].reverse().join(''); #JavaScript #DevTips #NodeJS"
-`,
+      content: `${prompt}
+      
+Requirements:
+- Must be under ${config.MAX_CONTENT_LENGTH} characters (leaving room for hashtags)
+- Include a practical code example
+- Make it engaging and actionable
+- Focus on ${topic.name} specifically
+- Be concise but informative
+
+Format: Brief explanation + code example`
     },
   ];
 
@@ -59,10 +156,10 @@ Example: "// Reverse string in JS: const rev = str => [...str].reverse().join(''
       const response = await axios.post(
         OPENAI_API_URL,
         {
-          model: "gpt-4",
+          model: config.OPENAI.MODEL,
           messages,
-          max_tokens: 100,
-          temperature: 0.85,
+          max_tokens: config.OPENAI.MAX_TOKENS,
+          temperature: config.OPENAI.TEMPERATURE,
         },
         {
           headers: {
@@ -73,32 +170,74 @@ Example: "// Reverse string in JS: const rev = str => [...str].reverse().join(''
       );
 
       const tip = response.data?.choices?.[0]?.message?.content?.trim();
-      console.log(`💡 Attempt ${attempt + 1}: ${tip?.length || 0} chars`);
-      console.log("🧠 Generated tip:", tip);
+      utils.logTweetGeneration(attempt + 1, topic, tip?.length || 0);
 
-      const containsCode = /[`\/]/.test(tip);
-
-      if (tip && tip.length <= 280 && containsCode) {
-        return tip;
+      if (tip && tip.length <= config.MAX_CONTENT_LENGTH) {
+        // Extract code from the tip
+        const code = utils.extractCodeFromText(tip);
+        
+        // Generate hashtags
+        const hashtags = utils.generateHashtags(topic, tip);
+        const hashtagString = hashtags.join(' ');
+        
+        const fullTweet = `${tip} ${hashtagString}`;
+        
+        // Validate the tweet
+        const validation = utils.validateTweetContent(fullTweet, code);
+        if (validation.valid) {
+          return {
+            text: fullTweet,
+            code: code,
+            topic: topic,
+            hashtags: hashtags
+          };
+        } else {
+          console.warn(`⚠️ Validation failed: ${validation.reason}`);
+        }
       }
 
-      console.warn("⚠️ Tip too long or no code found. Retrying...");
+      console.warn("⚠️ Tip too long. Retrying...");
     } catch (err) {
-      console.error("❌ OpenAI error:", err.response?.data || err.message);
+      utils.logError("OpenAI API", err);
     }
   }
 
-  const fallback =
-    "// Always commit before pulling: git commit -am 'WIP' && git pull --rebase #GitTips #CLI #DevLife";
+  // Fallback
+  const fallback = {
+    text: `// Quick tip: Use list comprehensions for cleaner Python code\nnumbers = [x*2 for x in range(10)] #Python #Coding #Programming`,
+    code: "numbers = [x*2 for x in range(10)]",
+    topic: TOPICS.PYTHON,
+    hashtags: ["#Python", "#Coding", "#Programming"]
+  };
+  
   console.warn("🚨 All retries failed. Using fallback tip.");
   return fallback;
 }
 
-// Post tweet and wait for rate limit reset if needed
-async function postWithRateLimitWait(tweet) {
+// Post tweet with media and wait for rate limit reset if needed
+async function postWithRateLimitWait(tweetData) {
   try {
-    await client.v2.tweet(tweet);
-    console.log(`✅ Tweet posted: ${tweet}`);
+    let mediaId = null;
+    
+    // Create and upload image if we have code
+    if (tweetData.code && tweetData.code.length > 0) {
+      try {
+        const imageBuffer = await createCodeImage(tweetData.code, tweetData.topic);
+        if (imageBuffer) {
+          const media = await client.v1.uploadMedia(imageBuffer, { mimeType: 'image/png' });
+          mediaId = media;
+          console.log("📸 Image uploaded successfully");
+        }
+      } catch (imageError) {
+        console.warn("⚠️ Could not create image, posting text only:", imageError.message);
+      }
+    }
+    
+    // Post tweet with or without media
+    const tweetOptions = mediaId ? { media: { media_ids: [mediaId] } } : {};
+    await client.v2.tweet(tweetData.text, tweetOptions);
+    
+    utils.logTweetPosted(tweetData);
   } catch (err) {
     const isRateLimit = err.code === 429 || err.response?.status === 429;
 
@@ -119,17 +258,28 @@ async function postWithRateLimitWait(tweet) {
       }
 
       try {
-        await client.v2.tweet(tweet);
-        console.log(`✅ Tweet posted after waiting: ${tweet}`);
+        let mediaId = null;
+        if (tweetData.code && tweetData.code.length > 0) {
+          try {
+            const imageBuffer = await createCodeImage(tweetData.code, tweetData.topic);
+            if (imageBuffer) {
+              const media = await client.v1.uploadMedia(imageBuffer, { mimeType: 'image/png' });
+              mediaId = media;
+            }
+          } catch (imageError) {
+            console.warn("⚠️ Could not create image on retry");
+          }
+        }
+        
+        const tweetOptions = mediaId ? { media: { media_ids: [mediaId] } } : {};
+        await client.v2.tweet(tweetData.text, tweetOptions);
+        utils.logTweetPosted(tweetData);
       } catch (retryErr) {
-        console.error(
-          "❌ Retry failed after waiting for rate limit reset:",
-          retryErr.message || retryErr
-        );
+        utils.logError("Retry after rate limit", retryErr);
         throw retryErr;
       }
     } else {
-      console.error("❌ Twitter error:", err.message || err);
+      utils.logError("Twitter API", err);
       throw err;
     }
   }
@@ -138,43 +288,43 @@ async function postWithRateLimitWait(tweet) {
 // Main function
 async function postProgrammingTip() {
   try {
-    const recent = loadRecentTweets();
-    const tip = await generateProgrammingTip();
+    const recent = utils.loadRecentTweets();
+    const tipData = await generateProgrammingTip();
 
-    if (!tip || tip.length === 0) {
+    if (!tipData || !tipData.text) {
       throw new Error("Generated tip is empty — skipping tweet.");
     }
 
     // Check for exact duplicate
-    if (recent.includes(tip)) {
+    if (recent.includes(tipData.text)) {
       console.warn("⚠️ Duplicate tip detected. Skipping post.");
       return;
     }
 
-    // Check for near-duplicate (similarity > 0.85)
-    const SIMILARITY_THRESHOLD = 0.85;
+    // Check for near-duplicate (similarity > threshold)
     const isSimilar = recent.some(
       (prev) =>
-        stringSimilarity.compareTwoStrings(tip, prev) > SIMILARITY_THRESHOLD
+        stringSimilarity.compareTwoStrings(tipData.text, prev) > config.SIMILARITY_THRESHOLD
     );
     if (isSimilar) {
       console.warn(
-        "⚠️ Near-duplicate tip detected (similarity > 85%). Skipping post."
+        `⚠️ Near-duplicate tip detected (similarity > ${config.SIMILARITY_THRESHOLD * 100}%). Skipping post.`
       );
       return;
     }
 
-    await postWithRateLimitWait(tip);
-    recent.push(tip);
-    saveRecentTweets(recent);
+    await postWithRateLimitWait(tipData);
+    recent.push(tipData.text);
+    utils.saveRecentTweets(recent);
+    
   } catch (err) {
-    console.error("❌ Error posting tweet:", err.message || err);
+    utils.logError("Posting tweet", err);
   }
 }
 
-// Schedule to run every hour on the hour
-cron.schedule("0 * * * *", () => {
-  console.log("🕒 Scheduled post every hour");
+// Schedule to run based on config
+cron.schedule(config.SCHEDULE, () => {
+  console.log("🕒 Scheduled post triggered");
   postProgrammingTip();
 });
 
