@@ -10,12 +10,15 @@ module.exports = {
   
   // Topic weights (must sum to 1.0)
   TOPIC_WEIGHTS: {
-    PYTHON: 0.25,
-    JAVASCRIPT: 0.25,
-    REACT: 0.20,
-    NODEJS: 0.15,
-    DOCKER: 0.10,
-    GIT: 0.05
+    PYTHON: 0.20,
+    JAVASCRIPT: 0.20,
+    REACT: 0.15,
+    NODEJS: 0.12,
+    DOCKER: 0.08,
+    GIT: 0.05,
+    AI: 0.10,
+    FLUTTER: 0.05,
+    SECURITY: 0.05
   },
   
   // Image generation settings

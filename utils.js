@@ -74,7 +74,18 @@ function generateHashtags(topic, content) {
 // Code extraction from text
 function extractCodeFromText(text) {
   const codeMatch = text.match(/```[\s\S]*?```|`[^`]+`/);
-  return codeMatch ? codeMatch[0].replace(/```/g, '').replace(/`/g, '') : '';
+  if (!codeMatch) return '';
+  
+  // Extract code and clean it for image rendering
+  let code = codeMatch[0].replace(/```/g, '').replace(/`/g, '');
+  
+  // Clean the code for better image rendering
+  code = code
+    .replace(/`/g, "'")      // Replace backticks with single quotes
+    .replace(/"/g, "'")      // Replace double quotes with single quotes
+    .replace(/[^\x20-\x7E]/g, ' '); // Replace any non-printable characters
+  
+  return code;
 }
 
 // Content validation

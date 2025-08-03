@@ -45,6 +45,24 @@ const POLL_QUESTIONS = {
     "Which Git GUI do you use?",
     "What's your favorite Git command?",
     "Which branching strategy do you follow?"
+  ],
+  AI: [
+    "What's your favorite AI/ML framework?",
+    "Which AI model do you use most?",
+    "What's your go-to AI tool/library?",
+    "Which AI application are you building?"
+  ],
+  FLUTTER: [
+    "What's your preferred Flutter state management?",
+    "Which Flutter widget do you use most?",
+    "What's your favorite Flutter package?",
+    "Which Flutter architecture do you follow?"
+  ],
+  SECURITY: [
+    "What's your biggest security concern?",
+    "Which security tool do you use most?",
+    "What's your go-to security practice?",
+    "Which security framework do you prefer?"
   ]
 };
 
@@ -84,6 +102,48 @@ const CODE_CHALLENGES = {
       code: "useEffect(() => {\n  console.log('mounted')\n}, [])",
       answer: "Logs 'mounted' once",
       explanation: "Empty dependency array runs only on mount"
+    }
+  ],
+  AI: [
+    {
+      question: "What does this code do?",
+      code: "import numpy as np\nx = np.array([1, 2, 3])\nprint(x * 2)",
+      answer: "[2, 4, 6]",
+      explanation: "NumPy arrays support element-wise operations"
+    },
+    {
+      question: "What's the output?",
+      code: "from sklearn.model_selection import train_test_split\nX_train, X_test = train_test_split(X, test_size=0.2)",
+      answer: "Splits data 80/20",
+      explanation: "test_size=0.2 means 20% for testing"
+    }
+  ],
+  FLUTTER: [
+    {
+      question: "What does this widget do?",
+      code: "Container(\n  child: Text('Hello'),\n  padding: EdgeInsets.all(16),\n)",
+      answer: "Text with 16px padding",
+      explanation: "Container adds padding around Text widget"
+    },
+    {
+      question: "What's the result?",
+      code: "List<String> items = ['a', 'b'];\nitems.add('c');\nprint(items.length);",
+      answer: "3",
+      explanation: "add() appends item to list"
+    }
+  ],
+  SECURITY: [
+    {
+      question: "What's wrong with this code?",
+      code: "query = \"SELECT * FROM users WHERE id = \" + userInput",
+      answer: "SQL Injection vulnerable",
+      explanation: "Direct string concatenation allows SQL injection"
+    },
+    {
+      question: "What does this do?",
+      code: "import hashlib\nhash = hashlib.sha256(password.encode()).hexdigest()",
+      answer: "Hashes password with SHA256",
+      explanation: "Creates cryptographic hash of password"
     }
   ]
 };
@@ -142,6 +202,24 @@ function getPollOptions(topicName, question) {
       "Which React hook do you use most?": ["useState", "useEffect", "useContext", "useMemo"],
       "What's your preferred React styling solution?": ["CSS Modules", "Styled Components", "Tailwind", "Material-UI"],
       "Which React testing library do you use?": ["React Testing Library", "Jest", "Cypress", "Playwright"]
+    },
+    "AI": {
+      "What's your favorite AI/ML framework?": ["TensorFlow", "PyTorch", "Scikit-learn", "Hugging Face"],
+      "Which AI model do you use most?": ["BERT", "GPT", "ResNet", "Custom Models"],
+      "What's your go-to AI tool/library?": ["Pandas", "NumPy", "Matplotlib", "Jupyter"],
+      "Which AI application are you building?": ["Chatbots", "Computer Vision", "NLP", "Recommendation Systems"]
+    },
+    "Flutter": {
+      "What's your preferred Flutter state management?": ["Provider", "Bloc", "Riverpod", "GetX"],
+      "Which Flutter widget do you use most?": ["Container", "ListView", "Column", "Row"],
+      "What's your favorite Flutter package?": ["http", "shared_preferences", "provider", "flutter_bloc"],
+      "Which Flutter architecture do you follow?": ["BLoC", "Provider", "MVC", "MVVM"]
+    },
+    "Security": {
+      "What's your biggest security concern?": ["Authentication", "Data Encryption", "SQL Injection", "XSS"],
+      "Which security tool do you use most?": ["OWASP ZAP", "Burp Suite", "Nmap", "Wireshark"],
+      "What's your go-to security practice?": ["Input Validation", "HTTPS", "Regular Updates", "Code Review"],
+      "Which security framework do you prefer?": ["OWASP", "NIST", "ISO 27001", "Custom"]
     }
   };
   

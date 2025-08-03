@@ -83,6 +83,33 @@ const TOPICS = {
       "Share a Git debugging or workflow tip. Include practical command example."
     ],
     hashtags: ["#Git", "#VersionControl", "#DevOps", "#Coding"]
+  },
+  AI: {
+    name: "AI",
+    prompts: [
+      "Generate a compact AI/ML tip with code example. Focus on: model training, data preprocessing, or practical AI applications. Include code example.",
+      "Create an AI optimization tip. Topics: model performance, deployment, or best practices. Include code example.",
+      "Share an AI debugging or implementation tip. Include practical code example."
+    ],
+    hashtags: ["#AI", "#MachineLearning", "#DataScience", "#TechTwitter"]
+  },
+  FLUTTER: {
+    name: "Flutter",
+    prompts: [
+      "Generate a compact Flutter tip with code example. Focus on: widgets, state management, or UI optimization. Include code example.",
+      "Create a Flutter optimization tip. Topics: performance, app architecture, or best practices. Include code example.",
+      "Share a Flutter debugging or development tip. Include practical code example."
+    ],
+    hashtags: ["#Flutter", "#MobileDev", "#Dart", "#AppDevelopment"]
+  },
+  SECURITY: {
+    name: "Security",
+    prompts: [
+      "Generate a compact security tip with code example. Focus on: authentication, encryption, or secure coding practices. Include code example.",
+      "Create a security optimization tip. Topics: vulnerability prevention, secure deployment, or best practices. Include code example.",
+      "Share a security debugging or implementation tip. Include practical code example."
+    ],
+    hashtags: ["#Security", "#CyberSecurity", "#SecureCoding", "#TechTwitter"]
   }
 };
 
@@ -96,18 +123,18 @@ async function createCodeImage(code, topic) {
     ctx.fillStyle = "#1e1e1e";
     ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
     
-    // Header - Use system fonts that are more likely to be available
+    // Header - Use simpler font setup
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 24px Arial, sans-serif";
+    ctx.font = "24px Arial";
     ctx.fillText(`${topic.name} Tip`, 20, 40);
     
     // Code background
     ctx.fillStyle = "#2d2d2d";
     ctx.fillRect(20, 60, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 80);
     
-    // Code text - Use monospace font that's more reliable
+    // Code text - Use simpler monospace font
     ctx.fillStyle = "#d4d4d4";
-    ctx.font = "16px 'Courier New', monospace, Arial";
+    ctx.font = "16px monospace";
     
     const lines = code.split('\n');
     const maxLines = config.IMAGE.MAX_CODE_LINES;
@@ -116,19 +143,22 @@ async function createCodeImage(code, topic) {
     displayLines.forEach((line, index) => {
       const y = 85 + (index * 20);
       if (y < config.IMAGE.HEIGHT - 30) {
-        ctx.fillText(line.substring(0, config.IMAGE.MAX_LINE_LENGTH), 30, y);
+        // Truncate line for display
+        const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
+        ctx.fillText(truncatedLine, 30, y);
       }
     });
     
     if (lines.length > maxLines) {
       ctx.fillStyle = "#888888";
+      ctx.font = "16px Arial";
       ctx.fillText("...", 30, 85 + (maxLines * 20));
     }
     
-    // Footer
+    // Footer - Use simple text without emoji
     ctx.fillStyle = "#888888";
-    ctx.font = "12px Arial, sans-serif";
-    ctx.fillText("Follow for more dev tips! 👨‍💻", 20, config.IMAGE.HEIGHT - 20);
+    ctx.font = "12px Arial";
+    ctx.fillText("Follow for more dev tips!", 20, config.IMAGE.HEIGHT - 20);
     
     return canvas.toBuffer('image/png');
   } catch (error) {
