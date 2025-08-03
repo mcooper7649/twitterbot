@@ -26,7 +26,8 @@ module.exports = {
     WIDTH: 800,
     HEIGHT: 400,
     MAX_CODE_LINES: 15,
-    MAX_LINE_LENGTH: 80
+    MAX_LINE_LENGTH: 80,
+    ENABLED: true // Set to false to disable image generation
   },
   
   // Similarity threshold for duplicate detection

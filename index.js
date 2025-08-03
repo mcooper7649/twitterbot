@@ -116,8 +116,15 @@ const TOPICS = {
 // Create visual content (code snippet image)
 async function createCodeImage(code, topic, detailedExample = null) {
   try {
+    // Explicitly set canvas size
     const canvas = createCanvas(config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+    canvas.width = config.IMAGE.WIDTH;
+    canvas.height = config.IMAGE.HEIGHT;
+    
     const ctx = canvas.getContext("2d");
+    
+    // Wait a moment for fonts to load (if needed)
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     // Background
     ctx.fillStyle = "#1e1e1e";
@@ -125,7 +132,7 @@ async function createCodeImage(code, topic, detailedExample = null) {
     
     // Header with branding
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 20px Arial";
+    ctx.font = "20px Arial";
     ctx.fillText(`${topic.name} Tip`, 20, 30);
     
     // Branding
@@ -142,9 +149,9 @@ async function createCodeImage(code, topic, detailedExample = null) {
     ctx.lineWidth = 1;
     ctx.strokeRect(20, 45, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 90);
     
-    // Code text
+    // Code text with font fallback
     ctx.fillStyle = "#d4d4d4";
-    ctx.font = "16px monospace";
+    ctx.font = "16px Arial, monospace";
     
     const lines = code.split('\n');
     const maxLines = config.IMAGE.MAX_CODE_LINES;
@@ -158,7 +165,12 @@ async function createCodeImage(code, topic, detailedExample = null) {
       const y = codeStartY + (index * 20); // Increased line spacing
       if (y < codeEndY) {
         const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
-        ctx.fillText(truncatedLine, 30, y);
+        // Clean the line for better rendering
+        const cleanLine = truncatedLine
+          .replace(/[^\x20-\x7E]/g, ' ') // Replace non-printable chars
+          .replace(/`/g, "'") // Replace backticks
+          .replace(/"/g, "'"); // Replace quotes
+        ctx.fillText(cleanLine, 30, y);
       }
     });
     
@@ -171,13 +183,18 @@ async function createCodeImage(code, topic, detailedExample = null) {
       
       // Example code
       ctx.fillStyle = "#e6e6e6";
-      ctx.font = "14px monospace";
+      ctx.font = "14px Arial, monospace";
       const exampleLines = detailedExample.split('\n');
       exampleLines.forEach((line, index) => {
         const y = codeEndY + 45 + (index * 18); // Increased line spacing
         if (y < config.IMAGE.HEIGHT - 50) { // Added 20px margin from bottom
           const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
-          ctx.fillText(truncatedLine, 30, y);
+          // Clean the line for better rendering
+          const cleanLine = truncatedLine
+            .replace(/[^\x20-\x7E]/g, ' ') // Replace non-printable chars
+            .replace(/`/g, "'") // Replace backticks
+            .replace(/"/g, "'"); // Replace quotes
+          ctx.fillText(cleanLine, 30, y);
         }
       });
     }
@@ -186,6 +203,9 @@ async function createCodeImage(code, topic, detailedExample = null) {
     ctx.fillStyle = "#888888";
     ctx.font = "12px Arial";
     ctx.fillText("Follow @dev_patterns for more tips!", 20, config.IMAGE.HEIGHT - 15);
+    
+    // Ensure all drawing is complete before converting
+    await new Promise(resolve => setTimeout(resolve, 50));
     
     return canvas.toBuffer('image/png');
   } catch (error) {
@@ -445,14 +465,20 @@ async function postWithRateLimitWait(tweetData) {
   try {
     let mediaId = null;
     
-    // Create and upload image if we have code
-    if (tweetData.code && tweetData.code.length > 0) {
+    // Create and upload image if we have code and images are enabled
+    if (tweetData.code && tweetData.code.length > 0 && config.IMAGE.ENABLED) {
       try {
         const imageBuffer = await createCodeImage(tweetData.code, tweetData.topic, tweetData.detailedExample);
-        if (imageBuffer) {
-          const media = await client.v1.uploadMedia(imageBuffer, { mimeType: 'image/png' });
+        if (imageBuffer && imageBuffer.length > 0) {
+          // Ensure proper encoding for Twitter API
+          const media = await client.v1.uploadMedia(imageBuffer, { 
+            mimeType: 'image/png',
+            target: 'tweet'
+          });
           mediaId = media;
           console.log("📸 Image uploaded successfully");
+        } else {
+          console.warn("⚠️ Image buffer is empty, posting text only");
         }
       } catch (imageError) {
         console.warn("⚠️ Could not create image, posting text only:", imageError.message);
