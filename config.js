@@ -5,7 +5,7 @@ module.exports = {
   
   // Content settings
   MAX_TWEET_LENGTH: 280,
-  MAX_CONTENT_LENGTH: 180, // Reduced from 200 to leave more room for hashtags
+  MAX_CONTENT_LENGTH: 120, // Shorter tweets for detailed images
   MAX_RECENT_TWEETS: 300,
   
   // Topic weights (must sum to 1.0)

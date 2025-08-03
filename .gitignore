@@ -86,11 +86,21 @@ pids
 
 # Bot specific files
 recent_tweets.json
-test_image.png
+test_image*.png
+analytics.json
+advanced-analytics.json
+crypto_rewards.json
 *.png
 *.jpg
 *.jpeg
 *.gif
+
+# API Keys and sensitive data
+.env*
+*.key
+*.pem
+*.p12
+*.pfx
 
 # IDE files
 .vscode/

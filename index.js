@@ -114,7 +114,7 @@ const TOPICS = {
 };
 
 // Create visual content (code snippet image)
-async function createCodeImage(code, topic) {
+async function createCodeImage(code, topic, detailedExample = null) {
   try {
     const canvas = createCanvas(config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
     const ctx = canvas.getContext("2d");
@@ -123,16 +123,26 @@ async function createCodeImage(code, topic) {
     ctx.fillStyle = "#1e1e1e";
     ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
     
-    // Header - Use simpler font setup
+    // Header with branding
     ctx.fillStyle = "#ffffff";
-    ctx.font = "24px Arial";
-    ctx.fillText(`${topic.name} Tip`, 20, 40);
+    ctx.font = "bold 20px Arial";
+    ctx.fillText(`${topic.name} Tip`, 20, 30);
     
-    // Code background
+    // Branding
+    ctx.fillStyle = "#00d4ff";
+    ctx.font = "14px Arial";
+    ctx.fillText("@dev_patterns", config.IMAGE.WIDTH - 120, 30);
+    
+    // Code background with border
     ctx.fillStyle = "#2d2d2d";
-    ctx.fillRect(20, 60, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 80);
+    ctx.fillRect(20, 45, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 90);
     
-    // Code text - Use simpler monospace font
+    // Code border
+    ctx.strokeStyle = "#444444";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(20, 45, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 90);
+    
+    // Code text
     ctx.fillStyle = "#d4d4d4";
     ctx.font = "16px monospace";
     
@@ -140,30 +150,46 @@ async function createCodeImage(code, topic) {
     const maxLines = config.IMAGE.MAX_CODE_LINES;
     const displayLines = lines.slice(0, maxLines);
     
+    // Calculate available space for code with equal margins
+    const codeStartY = 70; // 25px from top border (45 + 25)
+    const codeEndY = detailedExample ? config.IMAGE.HEIGHT - 140 : config.IMAGE.HEIGHT - 50;
+    
     displayLines.forEach((line, index) => {
-      const y = 85 + (index * 20);
-      if (y < config.IMAGE.HEIGHT - 30) {
-        // Truncate line for display
+      const y = codeStartY + (index * 20); // Increased line spacing
+      if (y < codeEndY) {
         const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
         ctx.fillText(truncatedLine, 30, y);
       }
     });
     
-    if (lines.length > maxLines) {
-      ctx.fillStyle = "#888888";
-      ctx.font = "16px Arial";
-      ctx.fillText("...", 30, 85 + (maxLines * 20));
+    // Add detailed example if provided
+    if (detailedExample && detailedExample.length > 0) {
+      // Example title
+      ctx.fillStyle = "#4a9eff";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText("Example Usage:", 30, codeEndY + 20);
+      
+      // Example code
+      ctx.fillStyle = "#e6e6e6";
+      ctx.font = "14px monospace";
+      const exampleLines = detailedExample.split('\n');
+      exampleLines.forEach((line, index) => {
+        const y = codeEndY + 45 + (index * 18); // Increased line spacing
+        if (y < config.IMAGE.HEIGHT - 50) { // Added 20px margin from bottom
+          const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
+          ctx.fillText(truncatedLine, 30, y);
+        }
+      });
     }
     
-    // Footer - Use simple text without emoji
+    // Footer with branding
     ctx.fillStyle = "#888888";
     ctx.font = "12px Arial";
-    ctx.fillText("Follow for more dev tips!", 20, config.IMAGE.HEIGHT - 20);
+    ctx.fillText("Follow @dev_patterns for more tips!", 20, config.IMAGE.HEIGHT - 15);
     
     return canvas.toBuffer('image/png');
   } catch (error) {
     console.error("Error creating code image:", error);
-    // Return null if image creation fails, bot will post text-only
     return null;
   }
 }
@@ -222,11 +248,17 @@ Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in rang
         // Extract code from the tip
         const code = utils.extractCodeFromText(tip);
         
+        // Generate detailed example for image
+        const detailedExample = await generateDetailedExample(topic, code);
+        
+        // Create shorter tweet text (just the key point)
+        const shortText = extractKeyPoint(tip);
+        
         // Generate hashtags with optimization
         const hashtags = utils.generateHashtags(topic, tip).slice(0, optimization.hashtagCount);
         const hashtagString = hashtags.join(' ');
         
-        const fullTweet = `${tip} ${hashtagString}`;
+        const fullTweet = `${shortText} ${hashtagString}`;
         
         // Validate the tweet
         const validation = utils.validateTweetContent(fullTweet, code);
@@ -237,7 +269,8 @@ Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in rang
             topic: topic,
             hashtags: hashtags,
             contentType: "tips",
-            optimization: optimization
+            optimization: optimization,
+            detailedExample: detailedExample
           };
         } else {
           console.warn(`⚠️ Validation failed: ${validation.reason}`);
@@ -264,6 +297,60 @@ Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in rang
   return fallback;
 }
 
+// Generate detailed example for image
+async function generateDetailedExample(topic, code) {
+  try {
+    const response = await axios.post(
+      OPENAI_API_URL,
+      {
+        model: config.OPENAI.MODEL,
+        messages: [
+          {
+            role: "user",
+            content: `Create a detailed practical example using this ${topic.name} code: "${code}"
+            
+            Requirements:
+            - Show real-world usage
+            - Include input/output examples
+            - Keep it concise (max 4 lines)
+            - Make it educational
+            
+            Format: Just the example code with comments`
+          }
+        ],
+        max_tokens: 100,
+        temperature: 0.7,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const example = response.data?.choices?.[0]?.message?.content?.trim();
+    return example || "";
+  } catch (error) {
+    console.error("Error generating detailed example:", error);
+    return "";
+  }
+}
+
+// Extract key point for shorter tweet
+function extractKeyPoint(tip) {
+  // Extract the main point (first sentence or key phrase)
+  const sentences = tip.split(/[.!?]/);
+  const keyPoint = sentences[0].trim();
+  
+  // If it's too long, take just the first part
+  if (keyPoint.length > 100) {
+    return keyPoint.substring(0, 100) + "...";
+  }
+  
+  return keyPoint;
+}
+
 // Generate interactive content with trending topics
 async function generateInteractiveContent(topic) {
   // Check if we should use trending topics
@@ -285,14 +372,26 @@ async function generateInteractiveContent(topic) {
   
   const interactiveData = interactive.generateInteractiveContent(topic);
   
+  // Extract code from interactive content if it exists
+  let code = "";
+  let detailedExample = "";
+  
+  if (interactiveData.type === "challenge") {
+    code = utils.extractCodeFromText(interactiveData.content);
+    if (code) {
+      detailedExample = await generateDetailedExample(topic, code);
+    }
+  }
+  
   return {
     text: `${interactiveData.content} ${interactiveData.hashtags.join(' ')}`,
-    code: "",
+    code: code,
     topic: topic,
     hashtags: interactiveData.hashtags,
     contentType: "interactive",
     interactiveType: interactiveData.type,
-    options: interactiveData.options || null
+    options: interactiveData.options || null,
+    detailedExample: detailedExample
   };
 }
 
@@ -349,7 +448,7 @@ async function postWithRateLimitWait(tweetData) {
     // Create and upload image if we have code
     if (tweetData.code && tweetData.code.length > 0) {
       try {
-        const imageBuffer = await createCodeImage(tweetData.code, tweetData.topic);
+        const imageBuffer = await createCodeImage(tweetData.code, tweetData.topic, tweetData.detailedExample);
         if (imageBuffer) {
           const media = await client.v1.uploadMedia(imageBuffer, { mimeType: 'image/png' });
           mediaId = media;

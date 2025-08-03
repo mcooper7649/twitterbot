@@ -1,11 +1,23 @@
 {
-  "totalPosts": 0,
-  "topicsPosted": {},
+  "totalPosts": 1,
+  "topicsPosted": {
+    "React": 1
+  },
   "contentTypes": {
     "tips": 0,
     "interactive": 0,
     "community": 0
   },
-  "dailyStats": {},
-  "lastUpdated": "2025-08-01T18:12:07.894Z"
+  "dailyStats": {
+    "2025-08-03": {
+      "posts": 1,
+      "topics": {
+        "React": 1
+      },
+      "contentTypes": {
+        "tips": 1
+      }
+    }
+  },
+  "lastUpdated": "2025-08-03T21:51:51.256Z"
 }

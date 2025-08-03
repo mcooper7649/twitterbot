@@ -1,8 +1,54 @@
 {
-  "abTests": {},
-  "performanceMetrics": {},
+  "abTests": {
+    "Content Length Test": {
+      "variants": {
+        "B": {
+          "tests": 1,
+          "totalValue": 0.08226426217972521,
+          "averageValue": 0.08226426217972521,
+          "metrics": {
+            "engagement_rate": [
+              0.08226426217972521
+            ]
+          }
+        }
+      },
+      "startDate": "2025-08-03T21:51:51.258Z",
+      "totalTests": 1
+    },
+    "Hashtag Count Test": {
+      "variants": {
+        "B": {
+          "tests": 1,
+          "totalValue": 1190,
+          "averageValue": 1190,
+          "metrics": {
+            "reach": [
+              1190
+            ]
+          }
+        }
+      },
+      "startDate": "2025-08-03T21:51:51.265Z",
+      "totalTests": 1
+    }
+  },
+  "performanceMetrics": {
+    "tips": {
+      "totalPosts": 1,
+      "averageEngagement": 0.08226426217972521,
+      "totalEngagement": 0.08226426217972521,
+      "topics": {
+        "React": {
+          "posts": 1,
+          "totalEngagement": 0.08226426217972521,
+          "averageEngagement": 0.08226426217972521
+        }
+      }
+    }
+  },
   "trendingTopics": [],
   "seasonalEvents": {},
   "threadPerformance": {},
-  "lastUpdated": "2025-08-01T18:12:07.895Z"
+  "lastUpdated": "2025-08-03T21:51:51.265Z"
 }
