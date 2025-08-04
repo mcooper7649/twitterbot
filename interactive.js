@@ -11,58 +11,58 @@ const INTERACTIVE_TYPES = {
 // Poll questions for different topics
 const POLL_QUESTIONS = {
   PYTHON: [
-    "What's your favorite Python framework?",
-    "Which Python feature do you use most?",
-    "What's your go-to Python package?",
-    "Which Python version are you using?"
+    "What's your approach to Python metaprogramming?",
+    "How do you handle Python performance bottlenecks?",
+    "What's your Python architecture pattern?",
+    "How do you scale Python applications?"
   ],
   JAVASCRIPT: [
-    "What's your preferred JS framework?",
-    "Which ES6+ feature do you love most?",
-    "What's your favorite JS testing library?",
-    "Which JS runtime do you prefer?"
+    "How do you handle JavaScript performance optimization?",
+    "What's your approach to JavaScript architecture?",
+    "How do you scale JavaScript applications?",
+    "What's your JavaScript debugging strategy?"
   ],
   REACT: [
-    "What's your favorite React state management?",
-    "Which React hook do you use most?",
-    "What's your preferred React styling solution?",
-    "Which React testing library do you use?"
+    "How do you handle React performance optimization?",
+    "What's your React architecture pattern?",
+    "How do you scale React applications?",
+    "What's your React debugging strategy?"
   ],
   NODEJS: [
-    "What's your favorite Node.js framework?",
-    "Which database do you use with Node.js?",
-    "What's your preferred Node.js testing tool?",
-    "Which Node.js version are you using?"
+    "How do you handle Node.js performance optimization?",
+    "What's your Node.js architecture pattern?",
+    "How do you scale Node.js applications?",
+    "What's your Node.js debugging strategy?"
   ],
   DOCKER: [
-    "What's your preferred container orchestration?",
-    "Which Docker base image do you use most?",
-    "What's your favorite Docker tool?",
-    "Which cloud platform do you deploy to?"
+    "How do you handle Docker performance optimization?",
+    "What's your Docker architecture pattern?",
+    "How do you scale Docker applications?",
+    "What's your Docker debugging strategy?"
   ],
   GIT: [
-    "What's your preferred Git workflow?",
-    "Which Git GUI do you use?",
-    "What's your favorite Git command?",
-    "Which branching strategy do you follow?"
+    "How do you handle Git performance optimization?",
+    "What's your Git architecture pattern?",
+    "How do you scale Git workflows?",
+    "What's your Git debugging strategy?"
   ],
   AI: [
-    "What's your favorite AI/ML framework?",
-    "Which AI model do you use most?",
-    "What's your go-to AI tool/library?",
-    "Which AI application are you building?"
+    "How do you handle AI/ML performance optimization?",
+    "What's your AI/ML architecture pattern?",
+    "How do you scale AI/ML applications?",
+    "What's your AI/ML debugging strategy?"
   ],
   FLUTTER: [
-    "What's your preferred Flutter state management?",
-    "Which Flutter widget do you use most?",
-    "What's your favorite Flutter package?",
-    "Which Flutter architecture do you follow?"
+    "How do you handle Flutter performance optimization?",
+    "What's your Flutter architecture pattern?",
+    "How do you scale Flutter applications?",
+    "What's your Flutter debugging strategy?"
   ],
   SECURITY: [
-    "What's your biggest security concern?",
-    "Which security tool do you use most?",
-    "What's your go-to security practice?",
-    "Which security framework do you prefer?"
+    "How do you handle security performance optimization?",
+    "What's your security architecture pattern?",
+    "How do you scale security applications?",
+    "What's your security debugging strategy?"
   ]
 };
 

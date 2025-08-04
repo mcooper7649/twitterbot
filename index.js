@@ -10,6 +10,7 @@ const community = require("./community");
 const analytics = require("./analytics");
 const advancedAnalytics = require("./advanced-analytics");
 const threadCreator = require("./thread-creator");
+const trendingAnalyzer = require("./trending-analyzer");
 require("dotenv").config();
 
 // Initialize analytics
@@ -33,83 +34,83 @@ const TOPICS = {
   PYTHON: {
     name: "Python",
     prompts: [
-      "Generate a compact Python tip with code example. Focus on: list comprehensions, decorators, context managers, or modern Python features. Include a short code snippet.",
-      "Create a Python optimization tip. Topics: performance, memory usage, async programming, or best practices. Include code example.",
-      "Share a Python debugging or testing tip. Include practical code example."
+      "Generate an advanced Python tip for senior developers. Focus on: metaprogramming, advanced decorators, context managers, type hints, or performance optimization. Include sophisticated code example.",
+      "Create a Python architecture tip. Topics: dependency injection, SOLID principles, design patterns, or system design. Include enterprise-level code example.",
+      "Share a Python debugging tip for complex systems. Include advanced debugging techniques, profiling, or performance analysis."
     ],
-    hashtags: ["#Python", "#PythonDev", "#Coding", "#Programming"]
+    hashtags: ["#Python", "#SeniorDev", "#Architecture", "#Performance"]
   },
   JAVASCRIPT: {
     name: "JavaScript",
     prompts: [
-      "Generate a compact JavaScript tip with code example. Focus on: ES6+ features, async/await, functional programming, or modern JS patterns.",
-      "Create a JavaScript optimization tip. Topics: performance, memory, DOM manipulation, or best practices. Include code example.",
-      "Share a JavaScript debugging or testing tip. Include practical code example."
+      "Generate an advanced JavaScript tip for senior developers. Focus on: advanced async patterns, functional programming, metaprogramming, or performance optimization. Include sophisticated code example.",
+      "Create a JavaScript architecture tip. Topics: microservices, event-driven architecture, design patterns, or system design. Include enterprise-level code example.",
+      "Share a JavaScript debugging tip for complex applications. Include advanced debugging, profiling, or performance analysis."
     ],
-    hashtags: ["#JavaScript", "#JS", "#WebDev", "#Coding"]
+    hashtags: ["#JavaScript", "#SeniorDev", "#Architecture", "#Performance"]
   },
   REACT: {
     name: "React",
     prompts: [
-      "Generate a compact React tip with code example. Focus on: hooks, performance, state management, or modern React patterns.",
-      "Create a React optimization tip. Topics: rendering optimization, custom hooks, or best practices. Include code example.",
-      "Share a React debugging or testing tip. Include practical code example."
+      "Generate an advanced React tip for senior developers. Focus on: advanced hooks, performance optimization, state management patterns, or complex component architecture. Include sophisticated code example.",
+      "Create a React architecture tip. Topics: micro-frontends, design patterns, state machines, or system design. Include enterprise-level code example.",
+      "Share a React debugging tip for complex applications. Include advanced debugging, profiling, or performance analysis."
     ],
-    hashtags: ["#React", "#ReactJS", "#Frontend", "#WebDev"]
+    hashtags: ["#React", "#SeniorDev", "#Architecture", "#Performance"]
   },
   NODEJS: {
     name: "Node.js",
     prompts: [
-      "Generate a compact Node.js tip with code example. Focus on: async programming, streams, performance, or best practices.",
-      "Create a Node.js optimization tip. Topics: memory management, clustering, or debugging. Include code example.",
-      "Share a Node.js security or deployment tip. Include practical code example."
+      "Generate an advanced Node.js tip for senior developers. Focus on: advanced async patterns, performance optimization, memory management, or system architecture. Include sophisticated code example.",
+      "Create a Node.js architecture tip. Topics: microservices, event-driven architecture, design patterns, or system design. Include enterprise-level code example.",
+      "Share a Node.js debugging tip for complex applications. Include advanced debugging, profiling, or performance analysis."
     ],
-    hashtags: ["#NodeJS", "#Node", "#Backend", "#JavaScript"]
+    hashtags: ["#NodeJS", "#SeniorDev", "#Architecture", "#Performance"]
   },
   DOCKER: {
     name: "Docker",
     prompts: [
-      "Generate a compact Docker tip with code example. Focus on: Dockerfile optimization, multi-stage builds, or best practices.",
-      "Create a Docker optimization tip. Topics: image size, security, or performance. Include code example.",
-      "Share a Docker debugging or deployment tip. Include practical example."
+      "Generate an advanced Docker tip for senior developers. Focus on: advanced Dockerfile patterns, multi-stage builds, security hardening, or performance optimization. Include sophisticated code example.",
+      "Create a Docker architecture tip. Topics: container orchestration, microservices, design patterns, or system design. Include enterprise-level code example.",
+      "Share a Docker debugging tip for complex applications. Include advanced debugging, profiling, or performance analysis."
     ],
-    hashtags: ["#Docker", "#DevOps", "#Containers", "#Deployment"]
+    hashtags: ["#Docker", "#SeniorDev", "#Architecture", "#DevOps"]
   },
   GIT: {
     name: "Git",
     prompts: [
-      "Generate a compact Git tip with command example. Focus on: advanced commands, workflow optimization, or best practices.",
-      "Create a Git optimization tip. Topics: branching strategies, commit messages, or collaboration. Include command example.",
-      "Share a Git debugging or workflow tip. Include practical command example."
+      "Generate an advanced Git tip for senior developers. Focus on: advanced Git workflows, branching strategies, or enterprise practices. Include sophisticated command example.",
+      "Create a Git architecture tip. Topics: monorepo strategies, CI/CD integration, or team collaboration. Include enterprise-level command example.",
+      "Share a Git debugging tip for complex workflows. Include advanced debugging, troubleshooting, or performance analysis."
     ],
-    hashtags: ["#Git", "#VersionControl", "#DevOps", "#Coding"]
+    hashtags: ["#Git", "#SeniorDev", "#Architecture", "#DevOps"]
   },
   AI: {
     name: "AI",
     prompts: [
-      "Generate a compact AI/ML tip with code example. Focus on: model training, data preprocessing, or practical AI applications. Include code example.",
-      "Create an AI optimization tip. Topics: model performance, deployment, or best practices. Include code example.",
-      "Share an AI debugging or implementation tip. Include practical code example."
+      "Generate an advanced AI/ML tip for senior developers. Focus on: advanced model architectures, production deployment, or performance optimization. Include sophisticated code example.",
+      "Create an AI architecture tip. Topics: MLOps, system design, or enterprise AI patterns. Include enterprise-level code example.",
+      "Share an AI debugging tip for complex models. Include advanced debugging, profiling, or performance analysis."
     ],
-    hashtags: ["#AI", "#MachineLearning", "#DataScience", "#TechTwitter"]
+    hashtags: ["#AI", "#SeniorDev", "#MLOps", "#Architecture"]
   },
   FLUTTER: {
     name: "Flutter",
     prompts: [
-      "Generate a compact Flutter tip with code example. Focus on: widgets, state management, or UI optimization. Include code example.",
-      "Create a Flutter optimization tip. Topics: performance, app architecture, or best practices. Include code example.",
-      "Share a Flutter debugging or development tip. Include practical code example."
+      "Generate an advanced Flutter tip for senior developers. Focus on: advanced state management, performance optimization, or complex UI patterns. Include sophisticated code example.",
+      "Create a Flutter architecture tip. Topics: clean architecture, design patterns, or system design. Include enterprise-level code example.",
+      "Share a Flutter debugging tip for complex applications. Include advanced debugging, profiling, or performance analysis."
     ],
-    hashtags: ["#Flutter", "#MobileDev", "#Dart", "#AppDevelopment"]
+    hashtags: ["#Flutter", "#SeniorDev", "#Architecture", "#MobileDev"]
   },
   SECURITY: {
     name: "Security",
     prompts: [
-      "Generate a compact security tip with code example. Focus on: authentication, encryption, or secure coding practices. Include code example.",
-      "Create a security optimization tip. Topics: vulnerability prevention, secure deployment, or best practices. Include code example.",
-      "Share a security debugging or implementation tip. Include practical code example."
+      "Generate an advanced security tip for senior developers. Focus on: advanced authentication patterns, encryption algorithms, or enterprise security. Include sophisticated code example.",
+      "Create a security architecture tip. Topics: zero-trust architecture, security patterns, or system design. Include enterprise-level code example.",
+      "Share a security debugging tip for complex systems. Include advanced debugging, threat analysis, or security testing."
     ],
-    hashtags: ["#Security", "#CyberSecurity", "#SecureCoding", "#TechTwitter"]
+    hashtags: ["#Security", "#SeniorDev", "#Architecture", "#CyberSecurity"]
   }
 };
 
@@ -159,10 +160,10 @@ async function createCodeImage(code, topic, detailedExample = null) {
     
     // Calculate available space for code with equal margins
     const codeStartY = 70; // 25px from top border (45 + 25)
-    const codeEndY = detailedExample ? config.IMAGE.HEIGHT - 140 : config.IMAGE.HEIGHT - 50;
+    const codeEndY = detailedExample ? config.IMAGE.HEIGHT - 160 : config.IMAGE.HEIGHT - 50;
     
     displayLines.forEach((line, index) => {
-      const y = codeStartY + (index * 20); // Increased line spacing
+      const y = codeStartY + (index * 18); // Slightly tighter spacing for more content
       if (y < codeEndY) {
         const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
         // Clean the line for better rendering
@@ -179,14 +180,14 @@ async function createCodeImage(code, topic, detailedExample = null) {
       // Example title
       ctx.fillStyle = "#4a9eff";
       ctx.font = "bold 16px Arial";
-      ctx.fillText("Example Usage:", 30, codeEndY + 20);
+      ctx.fillText("Advanced Implementation:", 30, codeEndY + 20);
       
       // Example code
       ctx.fillStyle = "#e6e6e6";
-      ctx.font = "14px Arial, monospace";
+      ctx.font = "13px Arial, monospace"; // Slightly smaller font for more content
       const exampleLines = detailedExample.split('\n');
       exampleLines.forEach((line, index) => {
-        const y = codeEndY + 45 + (index * 18); // Increased line spacing
+        const y = codeEndY + 45 + (index * 16); // Tighter spacing for more content
         if (y < config.IMAGE.HEIGHT - 50) { // Added 20px margin from bottom
           const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
           // Clean the line for better rendering
@@ -232,14 +233,14 @@ async function generateProgrammingTip(maxRetries = config.OPENAI.MAX_RETRIES) {
       
 Requirements:
 - Must be under ${maxLength} characters (leaving room for hashtags)
-- Include a practical code example
-- Make it engaging and actionable
+- Include a sophisticated code example for senior developers
+- Make it thought-provoking and architecturally sound
 - Focus on ${topic.name} specifically
-- Be concise but informative
-- Keep the explanation brief - focus on the code example
+- Be concise but demonstrate deep technical knowledge
+- Target experienced developers who want advanced insights
 
-Format: Brief explanation + code example
-Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in range(10)]"`
+Format: Brief architectural insight + sophisticated code example
+Example: "Implement dependency injection for better testability: class Service { constructor(private repo: Repository) {} }"`
     },
   ];
 
@@ -271,14 +272,14 @@ Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in rang
         // Generate detailed example for image
         const detailedExample = await generateDetailedExample(topic, code);
         
-        // Create shorter tweet text (just the key point)
-        const shortText = extractKeyPoint(tip);
+        // Create simple tweet text that references the detailed image
+        const tweetText = `How to ${topic.name.toLowerCase()}: Advanced patterns for senior developers`;
         
         // Generate hashtags with optimization
         const hashtags = utils.generateHashtags(topic, tip).slice(0, optimization.hashtagCount);
         const hashtagString = hashtags.join(' ');
         
-        const fullTweet = `${shortText} ${hashtagString}`;
+        const fullTweet = `${tweetText} ${hashtagString}`;
         
         // Validate the tweet
         const validation = utils.validateTweetContent(fullTweet, code);
@@ -317,7 +318,7 @@ Example: "Use list comprehensions for cleaner code: numbers = [x*2 for x in rang
   return fallback;
 }
 
-// Generate detailed example for image
+// Generate comprehensive advanced example for image
 async function generateDetailedExample(topic, code) {
   try {
     const response = await axios.post(
@@ -327,18 +328,24 @@ async function generateDetailedExample(topic, code) {
         messages: [
           {
             role: "user",
-            content: `Create a detailed practical example using this ${topic.name} code: "${code}"
-            
+            content: `Create a comprehensive, advanced ${topic.name} example for senior developers. This will be displayed in an image, so make it detailed and sophisticated.
+
             Requirements:
-            - Show real-world usage
-            - Include input/output examples
-            - Keep it concise (max 4 lines)
-            - Make it educational
+            - Create a complete, production-ready example
+            - Include advanced patterns and best practices
+            - Show enterprise-level architecture
+            - Include error handling, validation, and edge cases
+            - Make it 15-20 lines of sophisticated code
+            - Target senior/staff level developers
+            - Include comments explaining the advanced concepts
             
-            Format: Just the example code with comments`
+            Format: Complete, sophisticated code example with detailed comments
+            Example for React: Complete component with hooks, error boundaries, performance optimization
+            Example for Docker: Complete docker-compose with multi-stage builds, security, monitoring
+            Example for Python: Complete class with decorators, type hints, error handling`
           }
         ],
-        max_tokens: 100,
+        max_tokens: 300,
         temperature: 0.7,
       },
       {
@@ -445,19 +452,83 @@ async function generateCommunityContent(topic) {
   };
 }
 
-// Generate trending content
-async function generateTrendingContent(topic) {
-  const trendingData = advancedAnalytics.generateTrendingContent(topic);
-  
-  return {
-    text: `${trendingData.content} ${trendingData.hashtags.join(' ')}`,
-    code: "",
-    topic: topic,
-    hashtags: trendingData.hashtags,
-    contentType: "trending",
-    isTrending: trendingData.isTrending,
-    isSeasonal: trendingData.isSeasonal
-  };
+// Generate trending content that ties into current hot topics
+async function generateTrendingContent() {
+  try {
+    console.log("🔍 Analyzing trending content...");
+    
+    const analysis = await trendingAnalyzer.analyzeTrendingContent(client);
+    
+    if (!analysis || analysis.contentSuggestions.length === 0) {
+      console.log("No trending content suggestions available");
+      return null;
+    }
+    
+    // Select a random trending suggestion
+    const suggestion = analysis.contentSuggestions[Math.floor(Math.random() * analysis.contentSuggestions.length)];
+    
+    console.log(`📈 Selected trending topic: ${suggestion.category} (${suggestion.trendingKeyword})`);
+    
+    // Handle original poster engagement
+    if (analysis.originalPosters && analysis.originalPosters.length > 0) {
+      console.log(`🤝 Found ${analysis.originalPosters.length} original posters to engage with`);
+      
+      // Engage with original posters (limited to avoid spam)
+      for (const poster of analysis.originalPosters.slice(0, 2)) {
+        try {
+          await engageWithOriginalPoster(poster);
+        } catch (error) {
+          console.error("Error engaging with original poster:", error);
+        }
+      }
+    }
+    
+    return {
+      content: suggestion.content,
+      hashtags: suggestion.hashtags,
+      category: suggestion.category,
+      engagement: suggestion.engagement,
+      type: "trending"
+    };
+  } catch (error) {
+    console.error("Error generating trending content:", error);
+    return null;
+  }
+}
+
+// Engage with original poster of trending tweet
+async function engageWithOriginalPoster(poster) {
+  try {
+    const { tweetId, authorId, engagement } = poster;
+    
+    console.log(`🤝 Engaging with tweet ${tweetId} by user ${authorId}`);
+    
+    // Like the tweet if configured
+    if (engagement.shouldLike) {
+      try {
+        await client.v2.like(tweetId);
+        console.log(`✅ Liked tweet ${tweetId}`);
+      } catch (error) {
+        console.log(`❌ Failed to like tweet: ${error.message}`);
+      }
+    }
+    
+    // Reply to the tweet
+    if (engagement.type === 'reply') {
+      try {
+        await client.v2.reply(engagement.content, tweetId);
+        console.log(`✅ Replied to tweet ${tweetId}: ${engagement.content.substring(0, 50)}...`);
+      } catch (error) {
+        console.log(`❌ Failed to reply to tweet: ${error.message}`);
+      }
+    }
+    
+    // Wait between engagements to respect rate limits
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+  } catch (error) {
+    console.error("Error in engageWithOriginalPoster:", error);
+  }
 }
 
 // Post tweet with media and wait for rate limit reset if needed
@@ -615,7 +686,7 @@ async function postProgrammingTip() {
     
     switch (contentType) {
       case "trending":
-        tweetData = await generateTrendingContent(topic);
+        tweetData = await generateTrendingContent();
         break;
       case "interactive":
         tweetData = await generateInteractiveContent(topic);

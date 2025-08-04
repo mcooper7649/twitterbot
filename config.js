@@ -25,8 +25,8 @@ module.exports = {
   IMAGE: {
     WIDTH: 800,
     HEIGHT: 400,
-    MAX_CODE_LINES: 15,
-    MAX_LINE_LENGTH: 80,
+    MAX_CODE_LINES: 20, // Increased for more detailed content
+    MAX_LINE_LENGTH: 85, // Slightly longer lines
     ENABLED: true // Set to false to disable image generation
   },
   
@@ -50,10 +50,10 @@ module.exports = {
   
   // Phase 2: Content distribution
   CONTENT_DISTRIBUTION: {
-    TIPS: 0.55,        // 55% programming tips (reduced from 65%)
-    INTERACTIVE: 0.20,  // 20% polls, challenges, questions
+    TIPS: 0.45,        // Reduced from 55% - less technical heavy
+    INTERACTIVE: 0.25,  // Increased from 20% - more engagement
     COMMUNITY: 0.15,    // 15% community engagement
-    TRENDING: 0.10      // 10% trending topics (new in Phase 3)
+    TRENDING: 0.15      // Increased from 10% - more trend awareness
   },
   
   // Phase 2: Interactive content settings
