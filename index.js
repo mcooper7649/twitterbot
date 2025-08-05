@@ -206,7 +206,7 @@ async function createAestheticTextImage(text, contentType = "text") {
     }
     
     // Clean the text (remove hashtags for cleaner look)
-    const cleanText = text.replace(/#\w+/g, '').trim();
+    const cleanText = sanitizeForTwitter(text.replace(/#\w+/g, '').trim());
     
     // Split text into lines that fit the canvas width
     const maxWidth = config.IMAGE.WIDTH - 80; // 40px margin on each side
@@ -258,27 +258,22 @@ async function createAestheticTextImage(text, contentType = "text") {
           
           // Use a contrasting color for emojis based on content type
           if (contentType === "poll") {
-            ctx.fillStyle = "#ffeb3b"; // Yellow for polls
+            ctx.fillStyle = "#ffd700"; // Gold for polls
           } else {
-            ctx.fillStyle = "#ff5722"; // Orange for normal posts
+            ctx.fillStyle = "#ff6b35"; // Orange for normal posts
           }
-          
-          ctx.fillText(part, currentX, y);
         } else {
-          // For regular text, use Twitter-friendly monospace font
-          ctx.font = "bold 24px 'DejaVu Sans Mono', 'Courier New', monospace";
-          
-          // Reset to the main text color
-          if (contentType === "poll") {
-            ctx.fillStyle = "#ffffff"; // WHITE text for polls
-          } else {
-            ctx.fillStyle = "#000000"; // Black text for normal posts
-          }
-          
-          ctx.fillText(part, currentX, y);
+          // For regular text, use the standard font and color
+          ctx.font = "bold 24px monospace, 'DejaVu Sans Mono', 'Liberation Mono', 'Courier New', Arial, sans-serif";
+          ctx.fillStyle = contentType === "poll" ? "#ffffff" : "#000000";
         }
         
-        currentX += ctx.measureText(part).width;
+        // Sanitize the part for Twitter compatibility
+        const sanitizedPart = sanitizeForTwitter(part);
+        if (sanitizedPart.trim() !== '') {
+          ctx.fillText(sanitizedPart, currentX, y);
+          currentX += ctx.measureText(sanitizedPart).width;
+        }
       });
     });
     
@@ -290,10 +285,12 @@ async function createAestheticTextImage(text, contentType = "text") {
     // Ensure all drawing is complete before converting
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Convert to buffer with specific options for better Twitter compatibility
+    // Convert to buffer with Twitter-optimized settings
     const buffer = canvas.toBuffer('image/png', {
-      compressionLevel: 6,
-      filters: canvas.PNG_FILTER_NONE
+      compressionLevel: 9, // Maximum compression for smaller file size
+      filters: canvas.PNG_FILTER_NONE,
+      resolution: 72, // Standard web resolution
+      background: gradient ? undefined : '#ffffff' // Use gradient or solid background
     });
     
     return buffer;
@@ -349,12 +346,12 @@ async function createCodeImage(code, topic, detailedExample = null) {
     // Header with branding
     ctx.fillStyle = "#ffffff";
     ctx.font = "20px sans-serif, Arial, 'Helvetica Neue', Helvetica";
-    ctx.fillText(`${topic.name} Tip`, 20, 30);
+    ctx.fillText(sanitizeForTwitter(`${topic.name} Tip`), 20, 30);
     
     // Branding
     ctx.fillStyle = "#00d4ff";
     ctx.font = "14px sans-serif, Arial, 'Helvetica Neue', Helvetica";
-    ctx.fillText("@dev_patterns", config.IMAGE.WIDTH - 120, 30);
+    ctx.fillText(sanitizeForTwitter("@dev_patterns"), config.IMAGE.WIDTH - 120, 30);
     
     // Code background with border
     ctx.fillStyle = "#2d2d2d";
@@ -381,13 +378,15 @@ async function createCodeImage(code, topic, detailedExample = null) {
       const y = codeStartY + (index * 18); // Slightly tighter spacing for more content
       if (y < codeEndY) {
         const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
-        // Clean the line for better rendering
+        // Clean the line for better rendering and Twitter compatibility
         const cleanLine = truncatedLine
           .replace(/[^\x20-\x7E]/g, ' ') // Replace non-printable chars
           .replace(/`/g, "'") // Replace backticks
           .replace(/"/g, "'") // Replace quotes
-          .replace(/[^\w\s\-_.,;:(){}[\]=+<>!@#$%^&*|\\/]/g, ' '); // Replace any other problematic chars
-        ctx.fillText(cleanLine, 30, y);
+          .replace(/[^\w\s\-_.,;:(){}[\]=+<>!@#$%^&*|\\/]/g, ' ') // Replace any other problematic chars
+          .replace(/[^\x20-\x7E]/g, ' ') // Double-check for any remaining non-ASCII
+          .trim(); // Remove leading/trailing whitespace
+        ctx.fillText(sanitizeForTwitter(cleanLine), 30, y);
       }
     });
     
@@ -396,7 +395,7 @@ async function createCodeImage(code, topic, detailedExample = null) {
       // Example title
       ctx.fillStyle = "#4a9eff";
       ctx.font = "bold 16px sans-serif, Arial, 'Helvetica Neue', Helvetica";
-      ctx.fillText("Advanced Implementation:", 30, codeEndY + 20);
+      ctx.fillText(sanitizeForTwitter("Advanced Implementation:"), 30, codeEndY + 20);
       
       // Example code
       ctx.fillStyle = "#e6e6e6";
@@ -406,13 +405,15 @@ async function createCodeImage(code, topic, detailedExample = null) {
         const y = codeEndY + 45 + (index * 16); // Tighter spacing for more content
         if (y < config.IMAGE.HEIGHT - 50) { // Added 20px margin from bottom
           const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
-          // Clean the line for better rendering
+          // Clean the line for better rendering and Twitter compatibility
           const cleanLine = truncatedLine
             .replace(/[^\x20-\x7E]/g, ' ') // Replace non-printable chars
             .replace(/`/g, "'") // Replace backticks
             .replace(/"/g, "'") // Replace quotes
-            .replace(/[^\w\s\-_.,;:(){}[\]=+<>!@#$%^&*|\\/]/g, ' '); // Replace any other problematic chars
-          ctx.fillText(cleanLine, 30, y);
+            .replace(/[^\w\s\-_.,;:(){}[\]=+<>!@#$%^&*|\\/]/g, ' ') // Replace any other problematic chars
+            .replace(/[^\x20-\x7E]/g, ' ') // Double-check for any remaining non-ASCII
+            .trim(); // Remove leading/trailing whitespace
+          ctx.fillText(sanitizeForTwitter(cleanLine), 30, y);
         }
       });
     }
@@ -420,15 +421,17 @@ async function createCodeImage(code, topic, detailedExample = null) {
     // Footer with branding
     ctx.fillStyle = "#888888";
     ctx.font = "12px sans-serif, Arial, 'Helvetica Neue', Helvetica";
-    ctx.fillText("Follow @dev_patterns for more tips!", 20, config.IMAGE.HEIGHT - 15);
+    ctx.fillText(sanitizeForTwitter("Follow @dev_patterns for more tips!"), 20, config.IMAGE.HEIGHT - 15);
     
     // Ensure all drawing is complete before converting
     await new Promise(resolve => setTimeout(resolve, 150));
     
-    // Convert to buffer with specific options for better Twitter compatibility
+    // Convert to buffer with Twitter-optimized settings
     const buffer = canvas.toBuffer('image/png', {
-      compressionLevel: 6,
-      filters: canvas.PNG_FILTER_NONE
+      compressionLevel: 9, // Maximum compression for smaller file size
+      filters: canvas.PNG_FILTER_NONE,
+      resolution: 72, // Standard web resolution
+      background: '#1e1e1e' // Ensure background is solid
     });
     
     return buffer;
@@ -573,6 +576,14 @@ Example: "Use list comprehensions for cleaner code: [x*2 for x in range(10)]"`
   
   console.warn("🚨 All retries failed. Using fallback tip.");
   return fallback;
+}
+
+// Ensure text is Twitter-compatible (ASCII only)
+function sanitizeForTwitter(text) {
+  return text
+    .replace(/[^\x20-\x7E]/g, ' ') // Replace all non-ASCII with spaces
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim();
 }
 
 // Generate comprehensive advanced example for image
