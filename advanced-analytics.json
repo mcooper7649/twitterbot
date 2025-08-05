@@ -54,10 +54,22 @@
           "averageEngagement": 0.09278401256685044
         }
       }
+    },
+    "interactive": {
+      "totalPosts": 1,
+      "averageEngagement": 0.15095171927102904,
+      "totalEngagement": 0.15095171927102904,
+      "topics": {
+        "Node.js": {
+          "posts": 1,
+          "totalEngagement": 0.15095171927102904,
+          "averageEngagement": 0.15095171927102904
+        }
+      }
     }
   },
   "trendingTopics": [],
   "seasonalEvents": {},
   "threadPerformance": {},
-  "lastUpdated": "2025-08-04T05:00:47.477Z"
+  "lastUpdated": "2025-08-05T13:11:01.045Z"
 }
