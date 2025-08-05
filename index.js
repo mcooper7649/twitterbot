@@ -123,6 +123,32 @@ async function createAestheticTextImage(text, contentType = "text") {
     
     const ctx = canvas.getContext("2d");
     
+    // Test font availability
+    ctx.font = "24px monospace";
+    const testText = "Test";
+    const testMetrics = ctx.measureText(testText);
+    
+    // If font rendering fails, use a simpler font
+    if (testMetrics.width === 0) {
+      console.warn("⚠️ Font rendering issue detected, using fallback fonts");
+      // Try different font options
+      const fontOptions = [
+        "24px sans-serif",
+        "24px Arial",
+        "24px Helvetica",
+        "24px system-ui"
+      ];
+      
+      for (const font of fontOptions) {
+        ctx.font = font;
+        const metrics = ctx.measureText(testText);
+        if (metrics.width > 0) {
+          console.log(`✅ Using font: ${font}`);
+          break;
+        }
+      }
+    }
+    
     // Wait a moment for fonts to load
     await new Promise(resolve => setTimeout(resolve, 100));
     
@@ -188,8 +214,8 @@ async function createAestheticTextImage(text, contentType = "text") {
     const lines = [];
     let currentLine = '';
     
-    // Use Twitter-friendly monospace font
-    ctx.font = "bold 24px 'Courier New', monospace, Arial";
+    // Use Twitter-friendly monospace font with better fallbacks
+    ctx.font = "bold 24px monospace, 'DejaVu Sans Mono', 'Liberation Mono', 'Courier New', Arial, sans-serif";
     
     words.forEach(word => {
       const testLine = currentLine + (currentLine ? ' ' : '') + word;
@@ -287,6 +313,32 @@ async function createCodeImage(code, topic, detailedExample = null) {
     
     const ctx = canvas.getContext("2d");
     
+    // Test font availability with a simple text render
+    ctx.font = "16px monospace";
+    const testText = "Test";
+    const testMetrics = ctx.measureText(testText);
+    
+    // If font rendering fails (width is 0), use a simpler font
+    if (testMetrics.width === 0) {
+      console.warn("⚠️ Font rendering issue detected, using fallback fonts");
+      // Try different font options
+      const fontOptions = [
+        "16px sans-serif",
+        "16px Arial",
+        "16px Helvetica",
+        "16px system-ui"
+      ];
+      
+      for (const font of fontOptions) {
+        ctx.font = font;
+        const metrics = ctx.measureText(testText);
+        if (metrics.width > 0) {
+          console.log(`✅ Using font: ${font}`);
+          break;
+        }
+      }
+    }
+    
     // Wait a moment for fonts to load (if needed)
     await new Promise(resolve => setTimeout(resolve, 100));
     
@@ -296,12 +348,12 @@ async function createCodeImage(code, topic, detailedExample = null) {
     
     // Header with branding
     ctx.fillStyle = "#ffffff";
-    ctx.font = "20px Arial, sans-serif";
+    ctx.font = "20px sans-serif, Arial, 'Helvetica Neue', Helvetica";
     ctx.fillText(`${topic.name} Tip`, 20, 30);
     
     // Branding
     ctx.fillStyle = "#00d4ff";
-    ctx.font = "14px Arial, sans-serif";
+    ctx.font = "14px sans-serif, Arial, 'Helvetica Neue', Helvetica";
     ctx.fillText("@dev_patterns", config.IMAGE.WIDTH - 120, 30);
     
     // Code background with border
@@ -313,9 +365,9 @@ async function createCodeImage(code, topic, detailedExample = null) {
     ctx.lineWidth = 1;
     ctx.strokeRect(20, 45, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 90);
     
-    // Code text with Twitter-friendly font
+    // Code text with reliable monospace font
     ctx.fillStyle = "#d4d4d4";
-    ctx.font = "16px 'Courier New', monospace, Arial"; // Font fallback
+    ctx.font = "16px monospace, 'DejaVu Sans Mono', 'Liberation Mono', 'Courier New', Arial, sans-serif";
     
     const lines = code.split('\n');
     const maxLines = config.IMAGE.MAX_CODE_LINES;
@@ -343,12 +395,12 @@ async function createCodeImage(code, topic, detailedExample = null) {
     if (detailedExample && detailedExample.length > 0) {
       // Example title
       ctx.fillStyle = "#4a9eff";
-      ctx.font = "bold 16px Arial, sans-serif";
+      ctx.font = "bold 16px sans-serif, Arial, 'Helvetica Neue', Helvetica";
       ctx.fillText("Advanced Implementation:", 30, codeEndY + 20);
       
       // Example code
       ctx.fillStyle = "#e6e6e6";
-      ctx.font = "13px 'Courier New', monospace, Arial"; // Slightly smaller font for more content
+      ctx.font = "13px monospace, 'DejaVu Sans Mono', 'Liberation Mono', 'Courier New', Arial, sans-serif";
       const exampleLines = detailedExample.split('\n');
       exampleLines.forEach((line, index) => {
         const y = codeEndY + 45 + (index * 16); // Tighter spacing for more content
@@ -367,7 +419,7 @@ async function createCodeImage(code, topic, detailedExample = null) {
     
     // Footer with branding
     ctx.fillStyle = "#888888";
-    ctx.font = "12px Arial, sans-serif";
+    ctx.font = "12px sans-serif, Arial, 'Helvetica Neue', Helvetica";
     ctx.fillText("Follow @dev_patterns for more tips!", 20, config.IMAGE.HEIGHT - 15);
     
     // Ensure all drawing is complete before converting
