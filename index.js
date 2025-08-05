@@ -114,6 +114,125 @@ const TOPICS = {
   }
 };
 
+// Create aesthetic text image for non-code posts
+async function createAestheticTextImage(text, contentType = "text") {
+  try {
+    const canvas = createCanvas(config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+    canvas.width = config.IMAGE.WIDTH;
+    canvas.height = config.IMAGE.HEIGHT;
+    
+    const ctx = canvas.getContext("2d");
+    
+    // Wait a moment for fonts to load
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Create dynamic gradient backgrounds based on content type
+    let gradient;
+    const gradientDirection = Math.random() > 0.5 ? 'horizontal' : 'vertical';
+    
+    if (contentType === "poll") {
+      // Darker blue gradient for polls with better contrast
+      if (gradientDirection === 'horizontal') {
+        gradient = ctx.createLinearGradient(0, 0, config.IMAGE.WIDTH, 0);
+      } else {
+        gradient = ctx.createLinearGradient(0, 0, 0, config.IMAGE.HEIGHT);
+      }
+      gradient.addColorStop(0, "#1976d2"); // Darker blue
+      gradient.addColorStop(0.5, "#42a5f5"); // Medium blue
+      gradient.addColorStop(1, "#1976d2"); // Darker blue
+    } else {
+      // Dynamic gradient for normal text posts
+      const colors = [
+        ["#f3e5f5", "#e1bee7", "#ce93d8"], // Purple theme
+        ["#e8f5e8", "#c8e6c9", "#a5d6a7"], // Green theme
+        ["#fff3e0", "#ffe0b2", "#ffcc80"], // Orange theme
+        ["#e3f2fd", "#bbdefb", "#90caf9"], // Light blue theme
+        ["#fce4ec", "#f8bbd9", "#f48fb1"]  // Pink theme
+      ];
+      const colorTheme = colors[Math.floor(Math.random() * colors.length)];
+      
+      if (gradientDirection === 'horizontal') {
+        gradient = ctx.createLinearGradient(0, 0, config.IMAGE.WIDTH, 0);
+      } else {
+        gradient = ctx.createLinearGradient(0, 0, 0, config.IMAGE.HEIGHT);
+      }
+      gradient.addColorStop(0, colorTheme[0]);
+      gradient.addColorStop(0.5, colorTheme[1]);
+      gradient.addColorStop(1, colorTheme[2]);
+    }
+    
+    // Fill background with gradient
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+    
+    // Add subtle overlay for better text readability
+    const overlay = ctx.createLinearGradient(0, 0, 0, config.IMAGE.HEIGHT);
+    overlay.addColorStop(0, "rgba(255, 255, 255, 0.1)");
+    overlay.addColorStop(1, "rgba(255, 255, 255, 0.05)");
+    ctx.fillStyle = overlay;
+    ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+    
+    // Set text color based on content type
+    if (contentType === "poll") {
+      ctx.fillStyle = "#ffffff"; // WHITE text for polls
+    } else {
+      ctx.fillStyle = "#000000"; // Black text for normal posts
+    }
+    
+    // Clean the text (remove hashtags for cleaner look)
+    const cleanText = text.replace(/#\w+/g, '').trim();
+    
+    // Split text into lines that fit the canvas width
+    const maxWidth = config.IMAGE.WIDTH - 80; // 40px margin on each side
+    const words = cleanText.split(' ');
+    const lines = [];
+    let currentLine = '';
+    
+    // Use monospace font for ALL text
+    ctx.font = "bold 24px 'Courier New', monospace";
+    
+    words.forEach(word => {
+      const testLine = currentLine + (currentLine ? ' ' : '') + word;
+      const metrics = ctx.measureText(testLine);
+      
+      if (metrics.width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    });
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    // Center the text vertically and horizontally
+    const lineHeight = 32;
+    const totalHeight = lines.length * lineHeight;
+    const startY = (config.IMAGE.HEIGHT - totalHeight) / 2;
+    
+    lines.forEach((line, index) => {
+      const metrics = ctx.measureText(line);
+      const x = (config.IMAGE.WIDTH - metrics.width) / 2;
+      const y = startY + (index * lineHeight) + 24; // +24 for font baseline
+      ctx.fillText(line, x, y);
+    });
+    
+    // Add subtle branding at bottom with monospace font
+    ctx.fillStyle = contentType === "poll" ? "#ffffff" : "#666666";
+    ctx.font = "14px 'Courier New', monospace";
+    ctx.fillText("@dev_patterns", 20, config.IMAGE.HEIGHT - 20);
+    
+    // Ensure all drawing is complete before converting
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    return canvas.toBuffer('image/png');
+  } catch (error) {
+    console.error("Error creating aesthetic text image:", error);
+    return null;
+  }
+}
+
 // Create visual content (code snippet image)
 async function createCodeImage(code, topic, detailedExample = null) {
   try {
@@ -536,10 +655,32 @@ async function postWithRateLimitWait(tweetData) {
   try {
     let mediaId = null;
     
-    // Create and upload image if we have code and images are enabled
-    if (tweetData.code && tweetData.code.length > 0 && config.IMAGE.ENABLED) {
+    // Create and upload image if images are enabled
+    if (config.IMAGE.ENABLED) {
       try {
-        const imageBuffer = await createCodeImage(tweetData.code, tweetData.topic, tweetData.detailedExample);
+        let imageBuffer = null;
+        
+        // If we have code, create code image
+        if (tweetData.code && tweetData.code.length > 0) {
+          imageBuffer = await createCodeImage(tweetData.code, tweetData.topic, tweetData.detailedExample);
+          console.log("📸 Code image created");
+        } 
+        // If no code but we have text content, create aesthetic text image
+        else if (tweetData.text && tweetData.text.length > 0) {
+          // Determine content type for styling
+          let contentType = "text";
+          if (tweetData.contentType === "interactive" && tweetData.interactiveType === "poll") {
+            contentType = "poll";
+          } else if (tweetData.contentType === "community") {
+            contentType = "text"; // Community posts use normal text styling
+          } else if (tweetData.contentType === "trending") {
+            contentType = "text"; // Trending posts use normal text styling
+          }
+          
+          imageBuffer = await createAestheticTextImage(tweetData.text, contentType);
+          console.log(`📸 Aesthetic ${contentType} image created`);
+        }
+        
         if (imageBuffer && imageBuffer.length > 0) {
           // Ensure proper encoding for Twitter API
           const media = await client.v1.uploadMedia(imageBuffer, { 
@@ -616,9 +757,31 @@ async function postWithRateLimitWait(tweetData) {
 
       try {
         let mediaId = null;
-        if (tweetData.code && tweetData.code.length > 0) {
+        
+        // Retry image creation with same logic as main flow
+        if (config.IMAGE.ENABLED) {
           try {
-            const imageBuffer = await createCodeImage(tweetData.code, tweetData.topic);
+            let imageBuffer = null;
+            
+            // If we have code, create code image
+            if (tweetData.code && tweetData.code.length > 0) {
+              imageBuffer = await createCodeImage(tweetData.code, tweetData.topic);
+            } 
+            // If no code but we have text content, create aesthetic text image
+            else if (tweetData.text && tweetData.text.length > 0) {
+              // Determine content type for styling
+              let contentType = "text";
+              if (tweetData.contentType === "interactive" && tweetData.interactiveType === "poll") {
+                contentType = "poll";
+              } else if (tweetData.contentType === "community") {
+                contentType = "text";
+              } else if (tweetData.contentType === "trending") {
+                contentType = "text";
+              }
+              
+              imageBuffer = await createAestheticTextImage(tweetData.text, contentType);
+            }
+            
             if (imageBuffer) {
               const media = await client.v1.uploadMedia(imageBuffer, { mimeType: 'image/png' });
               mediaId = media;
