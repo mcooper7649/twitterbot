@@ -211,11 +211,49 @@ async function createAestheticTextImage(text, contentType = "text") {
     const totalHeight = lines.length * lineHeight;
     const startY = (config.IMAGE.HEIGHT - totalHeight) / 2;
     
+    // Render text with emoji support
     lines.forEach((line, index) => {
-      const metrics = ctx.measureText(line);
-      const x = (config.IMAGE.WIDTH - metrics.width) / 2;
       const y = startY + (index * lineHeight) + 24; // +24 for font baseline
-      ctx.fillText(line, x, y);
+      
+      // Split line into text and emoji parts
+      const parts = line.split(/([\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])/u);
+      
+      let currentX = (config.IMAGE.WIDTH - ctx.measureText(line).width) / 2;
+      
+      parts.forEach(part => {
+        if (part.trim() === '') return;
+        
+        // Check if this part is an emoji
+        const isEmoji = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(part);
+        
+        if (isEmoji) {
+          // For emojis, use a larger font and different color to make them stand out
+          ctx.font = "bold 32px 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', monospace";
+          
+          // Use a contrasting color for emojis based on content type
+          if (contentType === "poll") {
+            ctx.fillStyle = "#ffeb3b"; // Yellow for polls
+          } else {
+            ctx.fillStyle = "#ff5722"; // Orange for normal posts
+          }
+          
+          ctx.fillText(part, currentX, y);
+        } else {
+          // For regular text, use monospace font with the specified color
+          ctx.font = "bold 24px 'Courier New', monospace";
+          
+          // Reset to the main text color
+          if (contentType === "poll") {
+            ctx.fillStyle = "#ffffff"; // WHITE text for polls
+          } else {
+            ctx.fillStyle = "#000000"; // Black text for normal posts
+          }
+          
+          ctx.fillText(part, currentX, y);
+        }
+        
+        currentX += ctx.measureText(part).width;
+      });
     });
     
     // Add subtle branding at bottom with monospace font
