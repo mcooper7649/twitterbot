@@ -36,9 +36,11 @@ module.exports = {
   // OpenAI settings
   OPENAI: {
     MODEL: "gpt-4",
-    MAX_TOKENS: 120, // Reduced from 150
+    MAX_TOKENS: 100, // Reduced from 120 to generate shorter content
     TEMPERATURE: 0.8,
-    MAX_RETRIES: 5
+    MAX_RETRIES: 3,  // Reduced from 5 to fail faster
+    GENERATE_DETAILED_EXAMPLES: true, // Set to false to disable detailed example generation and avoid API restrictions
+    DETAILED_EXAMPLE_DELAY: 1000 // Delay in ms between API calls to avoid rate limiting
   },
   
   // Hashtag settings
@@ -50,10 +52,10 @@ module.exports = {
   
   // Phase 2: Content distribution
   CONTENT_DISTRIBUTION: {
-    TIPS: 0.45,        // Reduced from 55% - less technical heavy
-    INTERACTIVE: 0.25,  // Increased from 20% - more engagement
-    COMMUNITY: 0.15,    // 15% community engagement
-    TRENDING: 0.15      // Increased from 10% - more trend awareness
+    TIPS: 0.30,        // Reduced from 45% - less technical heavy content
+    INTERACTIVE: 0.35,  // Increased from 25% - more engagement
+    COMMUNITY: 0.20,    // Increased from 15% - more community engagement
+    TRENDING: 0.15      // Keep trending at 15%
   },
   
   // Phase 2: Interactive content settings

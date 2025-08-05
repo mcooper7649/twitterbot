@@ -1,136 +1,97 @@
-const { createCanvas } = require("canvas");
+const { createCanvas, loadImage } = require("canvas");
+const config = require("./config");
 const fs = require("fs");
 
-// Mock the config
-const config = {
-  IMAGE: {
-    WIDTH: 800,
-    HEIGHT: 400,
-    MAX_CODE_LINES: 15,
-    MAX_LINE_LENGTH: 80
-  }
-};
+// Test the new functionality
+async function testShortTweetWithDetailedImage() {
+  console.log("🧪 Testing short tweet with detailed image...");
+  
+  // Simulate a short tweet
+  const shortTweet = "Use list comprehensions for cleaner code: [x*2 for x in range(10)]";
+  const code = "[x*2 for x in range(10)]";
+  const topic = { name: "Python" };
+  
+  console.log(`📝 Short tweet: "${shortTweet}"`);
+  console.log(`📊 Tweet length: ${shortTweet.length} characters`);
+  
+  // Generate detailed example (simulated)
+  const detailedExample = `# Advanced List Comprehension with Error Handling
+from typing import List, Optional
+import logging
 
-// Test the new image generation function
-async function createCodeImage(code, topic, detailedExample = null) {
-  try {
-    const canvas = createCanvas(config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
-    const ctx = canvas.getContext("2d");
-    
-    // Background
-    ctx.fillStyle = "#1e1e1e";
-    ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
-    
-    // Header with branding
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 20px Arial";
-    ctx.fillText(`${topic.name} Tip`, 20, 30);
-    
-    // Branding
-    ctx.fillStyle = "#00d4ff";
-    ctx.font = "14px Arial";
-    ctx.fillText("@dev_patterns", config.IMAGE.WIDTH - 120, 30);
-    
-    // Code background with border
-    ctx.fillStyle = "#2d2d2d";
-    ctx.fillRect(20, 45, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 90);
-    
-    // Code border
-    ctx.strokeStyle = "#444444";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(20, 45, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 90);
-    
-    // Code text
-    ctx.fillStyle = "#d4d4d4";
-    ctx.font = "16px monospace";
-    
-    const lines = code.split('\n');
-    const maxLines = config.IMAGE.MAX_CODE_LINES;
-    const displayLines = lines.slice(0, maxLines);
-    
-    // Calculate available space for code with equal margins
-    const codeStartY = 70; // 25px from top border (45 + 25)
-    const codeEndY = detailedExample ? config.IMAGE.HEIGHT - 140 : config.IMAGE.HEIGHT - 50;
-    
-    displayLines.forEach((line, index) => {
-      const y = codeStartY + (index * 20); // Increased line spacing
-      if (y < codeEndY) {
-        const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
-        ctx.fillText(truncatedLine, 30, y);
-      }
-    });
-    
-    // Add detailed example if provided
-    if (detailedExample && detailedExample.length > 0) {
-      // Example title
-      ctx.fillStyle = "#4a9eff";
-      ctx.font = "bold 16px Arial";
-      ctx.fillText("Example Usage:", 30, codeEndY + 20);
-      
-      // Example code
-      ctx.fillStyle = "#e6e6e6";
-      ctx.font = "14px monospace";
-      const exampleLines = detailedExample.split('\n');
-      exampleLines.forEach((line, index) => {
-        const y = codeEndY + 45 + (index * 18); // Increased line spacing
-        if (y < config.IMAGE.HEIGHT - 50) { // Added 20px margin from bottom
-          const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
-          ctx.fillText(truncatedLine, 30, y);
-        }
-      });
-    }
-    
-    // Footer with branding
-    ctx.fillStyle = "#888888";
-    ctx.font = "12px Arial";
-    ctx.fillText("Follow @dev_patterns for more tips!", 20, config.IMAGE.HEIGHT - 15);
-    
-    return canvas.toBuffer('image/png');
-  } catch (error) {
-    console.error("Error creating code image:", error);
-    return null;
-  }
-}
+def process_data_safely(data: List[Optional[int]]) -> List[int]:
+    """Advanced list comprehension with error handling and logging."""
+    try:
+        # Filter out None values and apply transformation
+        processed = [
+            x * 2 for x in data 
+            if x is not None and isinstance(x, (int, float))
+        ]
+        logging.info(f"Processed {len(processed)} items successfully")
+        return processed
+    except Exception as e:
+        logging.error(f"Error processing data: {e}")
+        return []
 
-// Test function
-async function testImageGeneration() {
-  console.log("🧪 Testing new image generation...");
+# Usage example
+data = [1, None, 3, "invalid", 5]
+result = process_data_safely(data)  # [2, 6, 10]`;
   
-  const testCases = [
-    {
-      topic: { name: "Python" },
-      code: "numbers = [x*2 for x in range(10)]",
-      detailedExample: "# Create list of even numbers\nnumbers = [x*2 for x in range(10)]\nprint(numbers)  # [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]"
-    },
-    {
-      topic: { name: "React" },
-      code: "const [count, setCount] = useState(0);",
-      detailedExample: "// Counter component\nconst [count, setCount] = useState(0);\nreturn <button onClick={() => setCount(count + 1)}>{count}</button>;"
-    },
-    {
-      topic: { name: "AI" },
-      code: "import numpy as np\nx = np.array([1, 2, 3])",
-      detailedExample: "# NumPy array operations\nx = np.array([1, 2, 3])\nprint(x * 2)  # [2, 4, 6]\nprint(x.mean())  # 2.0"
+  console.log(`📖 Detailed example length: ${detailedExample.length} characters`);
+  console.log(`📖 Detailed example lines: ${detailedExample.split('\n').length}`);
+  
+  // Create the image
+  const canvas = createCanvas(config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+  const ctx = canvas.getContext("2d");
+  
+  // Background
+  ctx.fillStyle = "#1a1a1a";
+  ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+  
+  // Title
+  ctx.fillStyle = "#4a9eff";
+  ctx.font = "bold 24px Arial, sans-serif";
+  ctx.fillText("Python Tip: List Comprehensions", 30, 40);
+  
+  // Code border
+  ctx.strokeStyle = "#444444";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(20, 45, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 90);
+  
+  // Simple code (from tweet)
+  ctx.fillStyle = "#d4d4d4";
+  ctx.font = "16px 'Courier New', monospace, Arial";
+  ctx.fillText("numbers = [x*2 for x in range(10)]", 30, 70);
+  
+  // Detailed example title
+  ctx.fillStyle = "#4a9eff";
+  ctx.font = "bold 16px Arial, sans-serif";
+  ctx.fillText("Advanced Implementation:", 30, 120);
+  
+  // Detailed example code
+  ctx.fillStyle = "#e6e6e6";
+  ctx.font = "13px 'Courier New', monospace, Arial";
+  const exampleLines = detailedExample.split('\n');
+  exampleLines.forEach((line, index) => {
+    const y = 145 + (index * 16);
+    if (y < config.IMAGE.HEIGHT - 50) {
+      const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
+      ctx.fillText(truncatedLine, 30, y);
     }
-  ];
+  });
   
-  for (let i = 0; i < testCases.length; i++) {
-    const testCase = testCases[i];
-    console.log(`\n📸 Generating image ${i + 1}: ${testCase.topic.name}`);
-    
-    const imageBuffer = await createCodeImage(testCase.code, testCase.topic, testCase.detailedExample);
-    
-    if (imageBuffer) {
-      const filename = `test_image_${i + 1}.png`;
-      fs.writeFileSync(filename, imageBuffer);
-      console.log(`✅ Image saved as ${filename}`);
-    } else {
-      console.log(`❌ Failed to generate image ${i + 1}`);
-    }
-  }
+  // Footer
+  ctx.fillStyle = "#888888";
+  ctx.font = "12px Arial, sans-serif";
+  ctx.fillText("Follow @dev_patterns for more tips!", 20, config.IMAGE.HEIGHT - 15);
   
-  console.log("\n🎉 Image generation test completed!");
+  // Save the image
+  const buffer = canvas.toBuffer('image/png');
+  fs.writeFileSync('test-short-tweet-detailed-image.png', buffer);
+  
+  console.log("✅ Test completed! Check 'test-short-tweet-detailed-image.png'");
+  console.log(`📊 Tweet: ${shortTweet.length} chars | Image: ${detailedExample.length} chars`);
 }
 
 // Run the test
-testImageGeneration().catch(console.error); 
+testShortTweetWithDetailedImage().catch(console.error); 

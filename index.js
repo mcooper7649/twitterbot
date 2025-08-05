@@ -397,26 +397,37 @@ async function generateProgrammingTip(maxRetries = config.OPENAI.MAX_RETRIES) {
   
   const prompt = topic.prompts[Math.floor(Math.random() * topic.prompts.length)];
   
-  const messages = [
-    {
-      role: "user",
-      content: `${prompt}
-      
-Requirements:
-- Must be under ${maxLength} characters (leaving room for hashtags)
-- Include a sophisticated code example for senior developers
-- Make it thought-provoking and architecturally sound
-- Focus on ${topic.name} specifically
-- Be concise but demonstrate deep technical knowledge
-- Target experienced developers who want advanced insights
-
-Format: Brief architectural insight + sophisticated code example
-Example: "Implement dependency injection for better testability: class Service { constructor(private repo: Repository) {} }"`
-    },
-  ];
-
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
+      // Adjust prompt based on previous failures
+      let adjustedPrompt = prompt;
+      if (attempt > 0) {
+        adjustedPrompt = `${prompt}
+        
+IMPORTANT: Previous attempts were too long. Make this MUCH shorter:
+- Keep under ${Math.floor(maxLength * 0.8)} characters
+- Use only 1 line of code maximum
+- Be extremely concise`;
+      }
+      
+      const messages = [
+        {
+          role: "user",
+          content: `${adjustedPrompt}
+          
+Requirements:
+- Must be under ${maxLength} characters (STRICT LIMIT - including code)
+- Include a BRIEF code example (1-2 lines max)
+- Make it concise but insightful
+- Focus on ${topic.name} specifically
+- Target experienced developers
+- Keep it short and punchy
+
+Format: Brief tip + short code example
+Example: "Use list comprehensions for cleaner code: [x*2 for x in range(10)]"`
+        },
+      ];
+
       const response = await axios.post(
         OPENAI_API_URL,
         {
@@ -436,12 +447,21 @@ Example: "Implement dependency injection for better testability: class Service {
       const tip = response.data?.choices?.[0]?.message?.content?.trim();
       utils.logTweetGeneration(attempt + 1, topic, tip?.length || 0);
 
+      // Early validation - if tip is way too long, skip processing
+      if (tip && tip.length > maxLength * 1.2) {
+        console.warn(`⚠️ Tip way too long (${tip.length} chars). Retrying...`);
+        continue;
+      }
+
       if (tip && tip.length <= maxLength) {
         // Extract code from the tip
         const code = utils.extractCodeFromText(tip);
         
-        // Generate detailed example for image
-        const detailedExample = await generateDetailedExample(topic, code);
+        // Generate detailed example for image (if enabled)
+        let detailedExample = null;
+        if (config.OPENAI.GENERATE_DETAILED_EXAMPLES) {
+          detailedExample = await generateDetailedExample(topic, code);
+        }
         
         // Create simple tweet text that references the detailed image
         const tweetText = `How to ${topic.name.toLowerCase()}: Advanced patterns for senior developers`;
@@ -475,15 +495,29 @@ Example: "Implement dependency injection for better testability: class Service {
     }
   }
 
-  // Fallback
-  const fallback = {
-    text: `// Python tip: Use list comprehensions\nnumbers = [x*2 for x in range(10)] #Python #Coding #Programming`,
-    code: "numbers = [x*2 for x in range(10)]",
-    topic: TOPICS.PYTHON,
-    hashtags: ["#Python", "#Coding", "#Programming"],
-    contentType: "tips",
-    optimization: optimization
-  };
+  // Fallback with more variety
+  const fallbacks = [
+    {
+      text: `// ${topic.name} tip: Use list comprehensions\nnumbers = [x*2 for x in range(10)] #${topic.name} #Coding #Programming`,
+      code: "numbers = [x*2 for x in range(10)]",
+      hashtags: [`#${topic.name}`, "#Coding", "#Programming"]
+    },
+    {
+      text: `// ${topic.name} best practice\nresult = [item for item in data if condition] #${topic.name} #DevTips #Code`,
+      code: "result = [item for item in data if condition]",
+      hashtags: [`#${topic.name}`, "#DevTips", "#Code"]
+    },
+    {
+      text: `// ${topic.name} optimization\nfiltered = list(filter(lambda x: x > 0, data)) #${topic.name} #Optimization #Tech`,
+      code: "filtered = list(filter(lambda x: x > 0, data))",
+      hashtags: [`#${topic.name}`, "#Optimization", "#Tech"]
+    }
+  ];
+  
+  const fallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+  fallback.topic = topic;
+  fallback.contentType = "tips";
+  fallback.optimization = optimization;
   
   console.warn("🚨 All retries failed. Using fallback tip.");
   return fallback;
@@ -492,6 +526,9 @@ Example: "Implement dependency injection for better testability: class Service {
 // Generate comprehensive advanced example for image
 async function generateDetailedExample(topic, code) {
   try {
+    // Add a small delay to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, config.OPENAI.DETAILED_EXAMPLE_DELAY));
+    
     const response = await axios.post(
       OPENAI_API_URL,
       {
@@ -499,10 +536,10 @@ async function generateDetailedExample(topic, code) {
         messages: [
           {
             role: "user",
-            content: `Create a comprehensive, advanced ${topic.name} example for senior developers. This will be displayed in an image, so make it detailed and sophisticated.
+            content: `Based on this ${topic.name} tip: "${code}", create a comprehensive, advanced example for senior developers.
 
             Requirements:
-            - Create a complete, production-ready example
+            - Expand the simple tip into a complete, production-ready example
             - Include advanced patterns and best practices
             - Show enterprise-level architecture
             - Include error handling, validation, and edge cases
@@ -511,12 +548,10 @@ async function generateDetailedExample(topic, code) {
             - Include comments explaining the advanced concepts
             
             Format: Complete, sophisticated code example with detailed comments
-            Example for React: Complete component with hooks, error boundaries, performance optimization
-            Example for Docker: Complete docker-compose with multi-stage builds, security, monitoring
-            Example for Python: Complete class with decorators, type hints, error handling`
+            Base your example on the tip provided above.`
           }
         ],
-        max_tokens: 300,
+        max_tokens: 400, // Increased for more detailed examples
         temperature: 0.7,
       },
       {
@@ -531,8 +566,124 @@ async function generateDetailedExample(topic, code) {
     return example || "";
   } catch (error) {
     console.error("Error generating detailed example:", error);
-    return "";
+    // Return a fallback detailed example based on the topic
+    return generateFallbackDetailedExample(topic, code);
   }
+}
+
+// Generate fallback detailed example when API fails
+function generateFallbackDetailedExample(topic, code) {
+  const fallbackExamples = {
+    PYTHON: {
+      "list comprehension": `# Advanced List Comprehension with Error Handling
+from typing import List, Optional
+import logging
+
+def process_data_safely(data: List[Optional[int]]) -> List[int]:
+    """Advanced list comprehension with error handling and logging."""
+    try:
+        # Filter out None values and apply transformation
+        processed = [
+            x * 2 for x in data 
+            if x is not None and isinstance(x, (int, float))
+        ]
+        logging.info(f"Processed {len(processed)} items successfully")
+        return processed
+    except Exception as e:
+        logging.error(f"Error processing data: {e}")
+        return []
+
+# Usage example
+data = [1, None, 3, "invalid", 5]
+result = process_data_safely(data)  # [2, 6, 10]`
+    },
+    JAVASCRIPT: {
+      "async": `// Advanced Async Pattern with Error Boundaries
+class AsyncProcessor {
+    constructor() {
+        this.retryCount = 0;
+        this.maxRetries = 3;
+    }
+
+    async processWithRetry(data) {
+        try {
+            const result = await this.processData(data);
+            return { success: true, data: result };
+        } catch (error) {
+            if (this.retryCount < this.maxRetries) {
+                this.retryCount++;
+                console.warn(\`Retry \${this.retryCount}/\${this.maxRetries}\`);
+                return this.processWithRetry(data);
+            }
+            throw new Error(\`Failed after \${this.maxRetries} retries\`);
+        }
+    }
+
+    async processData(data) {
+        // Simulate async processing
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(data.map(x => x * 2)), 100);
+        });
+    }
+}`
+    },
+    REACT: {
+      "hooks": `// Advanced React Hook with Performance Optimization
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+
+const useAdvancedDataProcessor = (initialData) => {
+    const [data, setData] = useState(initialData);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    // Memoized expensive computation
+    const processedData = useMemo(() => {
+        return data.map(item => ({
+            ...item,
+            processed: item.value * 2,
+            timestamp: new Date().toISOString()
+        }));
+    }, [data]);
+
+    // Optimized callback to prevent unnecessary re-renders
+    const updateData = useCallback(async (newData) => {
+        setLoading(true);
+        setError(null);
+        
+        try {
+            const response = await fetch('/api/process', {
+                method: 'POST',
+                body: JSON.stringify(newData)
+            });
+            
+            if (!response.ok) throw new Error('Processing failed');
+            
+            const result = await response.json();
+            setData(result);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { data: processedData, loading, error, updateData };
+};`
+    }
+  };
+
+  // Find the best matching fallback example
+  const topicExamples = fallbackExamples[topic.name.toUpperCase()] || fallbackExamples.PYTHON;
+  const codeLower = code.toLowerCase();
+  
+  for (const [key, example] of Object.entries(topicExamples)) {
+    if (codeLower.includes(key)) {
+      return example;
+    }
+  }
+  
+  // Default fallback
+  return topicExamples[Object.keys(topicExamples)[0]] || fallbackExamples.PYTHON["list comprehension"];
 }
 
 // Extract key point for shorter tweet

@@ -360,7 +360,7 @@ function optimizeContent(topic, contentType) {
   
   const optimization = {
     hashtagCount: optimalHashtagCount === "A" ? 3 : optimalHashtagCount === "B" ? 4 : 5,
-    maxLength: optimalLength === "A" ? 150 : optimalLength === "B" ? 180 : 200,
+    maxLength: optimalLength === "A" ? 120 : optimalLength === "B" ? 140 : 160, // More conservative limits
     topicPerformance: topicPerformance?.averageEngagement || 0.08,
     recommendations: []
   };
