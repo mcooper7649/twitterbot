@@ -189,7 +189,7 @@ async function createAestheticTextImage(text, contentType = "text") {
     let currentLine = '';
     
     // Use Twitter-friendly monospace font
-    ctx.font = "bold 24px 'DejaVu Sans Mono', 'Courier New', monospace";
+    ctx.font = "bold 24px 'Courier New', monospace, Arial";
     
     words.forEach(word => {
       const testLine = currentLine + (currentLine ? ' ' : '') + word;
@@ -296,12 +296,12 @@ async function createCodeImage(code, topic, detailedExample = null) {
     
     // Header with branding
     ctx.fillStyle = "#ffffff";
-    ctx.font = "20px 'DejaVu Sans', Arial, sans-serif";
+    ctx.font = "20px Arial, sans-serif";
     ctx.fillText(`${topic.name} Tip`, 20, 30);
     
     // Branding
     ctx.fillStyle = "#00d4ff";
-    ctx.font = "14px 'DejaVu Sans', Arial, sans-serif";
+    ctx.font = "14px Arial, sans-serif";
     ctx.fillText("@dev_patterns", config.IMAGE.WIDTH - 120, 30);
     
     // Code background with border
@@ -315,7 +315,7 @@ async function createCodeImage(code, topic, detailedExample = null) {
     
     // Code text with Twitter-friendly font
     ctx.fillStyle = "#d4d4d4";
-    ctx.font = "16px 'DejaVu Sans Mono', Arial, monospace";
+    ctx.font = "16px 'Courier New', monospace, Arial"; // Font fallback
     
     const lines = code.split('\n');
     const maxLines = config.IMAGE.MAX_CODE_LINES;
@@ -333,7 +333,8 @@ async function createCodeImage(code, topic, detailedExample = null) {
         const cleanLine = truncatedLine
           .replace(/[^\x20-\x7E]/g, ' ') // Replace non-printable chars
           .replace(/`/g, "'") // Replace backticks
-          .replace(/"/g, "'"); // Replace quotes
+          .replace(/"/g, "'") // Replace quotes
+          .replace(/[^\w\s\-_.,;:(){}[\]=+<>!@#$%^&*|\\/]/g, ' '); // Replace any other problematic chars
         ctx.fillText(cleanLine, 30, y);
       }
     });
@@ -342,12 +343,12 @@ async function createCodeImage(code, topic, detailedExample = null) {
     if (detailedExample && detailedExample.length > 0) {
       // Example title
       ctx.fillStyle = "#4a9eff";
-      ctx.font = "bold 16px 'DejaVu Sans', Arial, sans-serif";
+      ctx.font = "bold 16px Arial, sans-serif";
       ctx.fillText("Advanced Implementation:", 30, codeEndY + 20);
       
       // Example code
       ctx.fillStyle = "#e6e6e6";
-      ctx.font = "13px 'DejaVu Sans Mono', Arial, monospace"; // Slightly smaller font for more content
+      ctx.font = "13px 'Courier New', monospace, Arial"; // Slightly smaller font for more content
       const exampleLines = detailedExample.split('\n');
       exampleLines.forEach((line, index) => {
         const y = codeEndY + 45 + (index * 16); // Tighter spacing for more content
@@ -357,7 +358,8 @@ async function createCodeImage(code, topic, detailedExample = null) {
           const cleanLine = truncatedLine
             .replace(/[^\x20-\x7E]/g, ' ') // Replace non-printable chars
             .replace(/`/g, "'") // Replace backticks
-            .replace(/"/g, "'"); // Replace quotes
+            .replace(/"/g, "'") // Replace quotes
+            .replace(/[^\w\s\-_.,;:(){}[\]=+<>!@#$%^&*|\\/]/g, ' '); // Replace any other problematic chars
           ctx.fillText(cleanLine, 30, y);
         }
       });
@@ -365,11 +367,11 @@ async function createCodeImage(code, topic, detailedExample = null) {
     
     // Footer with branding
     ctx.fillStyle = "#888888";
-    ctx.font = "12px 'DejaVu Sans', Arial, sans-serif";
+    ctx.font = "12px Arial, sans-serif";
     ctx.fillText("Follow @dev_patterns for more tips!", 20, config.IMAGE.HEIGHT - 15);
     
     // Ensure all drawing is complete before converting
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 150));
     
     // Convert to buffer with specific options for better Twitter compatibility
     const buffer = canvas.toBuffer('image/png', {

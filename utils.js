@@ -83,7 +83,8 @@ function extractCodeFromText(text) {
   code = code
     .replace(/`/g, "'")      // Replace backticks with single quotes
     .replace(/"/g, "'")      // Replace double quotes with single quotes
-    .replace(/[^\x20-\x7E]/g, ' '); // Replace any non-printable characters
+    .replace(/[^\x20-\x7E]/g, ' ') // Replace any non-printable characters
+    .replace(/[^\w\s\-_.,;:(){}[\]=+<>!@#$%^&*|\\/]/g, ' '); // Replace any other problematic chars
   
   return code;
 }
