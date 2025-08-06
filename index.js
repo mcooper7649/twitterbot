@@ -118,331 +118,46 @@ const TOPICS = {
   }
 };
 
-// Create aesthetic text image for non-code posts
-async function createAestheticTextImage(text, contentType = "text") {
+// Improved font handling with better fallbacks and loading
+function getReliableFont(size, weight = 'normal') {
   try {
-    const canvas = createCanvas(config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
-    canvas.width = config.IMAGE.WIDTH;
-    canvas.height = config.IMAGE.HEIGHT;
-    
-    const ctx = canvas.getContext("2d");
-    
-    // Test font availability
-    ctx.font = getReliableFont(24, 'bold');
-    const testText = "Test";
-    const testMetrics = ctx.measureText(testText);
-    
-    // If font rendering fails, use a simpler font
-    if (testMetrics.width === 0) {
-      console.warn("⚠️ Font rendering issue detected, using fallback fonts");
-      // Try different font options
-      const fontOptions = [
-        "24px sans-serif",
-        "24px Arial",
-        "24px Helvetica",
-        "24px system-ui"
-      ];
-      
-      for (const font of fontOptions) {
-        ctx.font = font;
-        const metrics = ctx.measureText(testText);
-        if (metrics.width > 0) {
-          console.log(`✅ Using font: ${font}`);
-          break;
-        }
-      }
-    }
-    
-    // Wait a moment for fonts to load
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Create dynamic gradient backgrounds based on content type
-    let gradient;
-    const gradientDirection = Math.random() > 0.5 ? 'horizontal' : 'vertical';
-    
-    if (contentType === "poll") {
-      // Darker blue gradient for polls with better contrast
-      if (gradientDirection === 'horizontal') {
-        gradient = ctx.createLinearGradient(0, 0, config.IMAGE.WIDTH, 0);
-      } else {
-        gradient = ctx.createLinearGradient(0, 0, 0, config.IMAGE.HEIGHT);
-      }
-      gradient.addColorStop(0, "#1976d2"); // Darker blue
-      gradient.addColorStop(0.5, "#42a5f5"); // Medium blue
-      gradient.addColorStop(1, "#1976d2"); // Darker blue
-    } else {
-      // Dynamic gradient for normal text posts
-      const colors = [
-        ["#f3e5f5", "#e1bee7", "#ce93d8"], // Purple theme
-        ["#e8f5e8", "#c8e6c9", "#a5d6a7"], // Green theme
-        ["#fff3e0", "#ffe0b2", "#ffcc80"], // Orange theme
-        ["#e3f2fd", "#bbdefb", "#90caf9"], // Light blue theme
-        ["#fce4ec", "#f8bbd9", "#f48fb1"]  // Pink theme
-      ];
-      const colorTheme = colors[Math.floor(Math.random() * colors.length)];
-      
-      if (gradientDirection === 'horizontal') {
-        gradient = ctx.createLinearGradient(0, 0, config.IMAGE.WIDTH, 0);
-      } else {
-        gradient = ctx.createLinearGradient(0, 0, 0, config.IMAGE.HEIGHT);
-      }
-      gradient.addColorStop(0, colorTheme[0]);
-      gradient.addColorStop(0.5, colorTheme[1]);
-      gradient.addColorStop(1, colorTheme[2]);
-    }
-    
-    // Fill background with gradient
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
-    
-    // Add subtle overlay for better text readability
-    const overlay = ctx.createLinearGradient(0, 0, 0, config.IMAGE.HEIGHT);
-    overlay.addColorStop(0, "rgba(255, 255, 255, 0.1)");
-    overlay.addColorStop(1, "rgba(255, 255, 255, 0.05)");
-    ctx.fillStyle = overlay;
-    ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
-    
-    // Set text color based on content type
-    if (contentType === "poll") {
-      ctx.fillStyle = "#ffffff"; // WHITE text for polls
-    } else {
-      ctx.fillStyle = "#000000"; // Black text for normal posts
-    }
-    
-    // Clean the text (remove hashtags for cleaner look)
-    const cleanText = sanitizeForTwitter(text.replace(/#\w+/g, '').trim());
-    
-    // Split text into lines that fit the canvas width
-    const maxWidth = config.IMAGE.WIDTH - 80; // 40px margin on each side
-    const words = cleanText.split(' ');
-    const lines = [];
-    let currentLine = '';
-    
-    // Use Twitter-friendly monospace font with better fallbacks
-    ctx.font = getReliableFont(24, 'bold');
-    
-    words.forEach(word => {
-      const testLine = currentLine + (currentLine ? ' ' : '') + word;
-      const metrics = ctx.measureText(testLine);
-      
-      if (metrics.width > maxWidth && currentLine) {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = testLine;
-      }
-    });
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-    
-    // Center the text vertically and horizontally
-    const lineHeight = 32;
-    const totalHeight = lines.length * lineHeight;
-    const startY = (config.IMAGE.HEIGHT - totalHeight) / 2;
-    
-    // Render text with emoji support
-    lines.forEach((line, index) => {
-      const y = startY + (index * lineHeight) + 24; // +24 for font baseline
-      
-      // Split line into text and emoji parts
-      const parts = line.split(/([\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])/u);
-      
-      let currentX = (config.IMAGE.WIDTH - ctx.measureText(line).width) / 2;
-      
-      parts.forEach(part => {
-        if (part.trim() === '') return;
-        
-        // Check if this part is an emoji
-        const isEmoji = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(part);
-        
-        if (isEmoji) {
-          // For emojis, use a larger font and different color to make them stand out
-          ctx.font = getReliableFont(32, 'bold');
-          
-          // Use a contrasting color for emojis based on content type
-          if (contentType === "poll") {
-            ctx.fillStyle = "#ffd700"; // Gold for polls
-          } else {
-            ctx.fillStyle = "#ff6b35"; // Orange for normal posts
-          }
-        } else {
-          // For regular text, use the standard font and color
-          ctx.font = getReliableFont(24, 'bold');
-          ctx.fillStyle = contentType === "poll" ? "#ffffff" : "#000000";
-        }
-        
-        // Sanitize the part for Twitter compatibility
-        const sanitizedPart = sanitizeForTwitter(part);
-        if (sanitizedPart.trim() !== '') {
-          ctx.fillText(sanitizedPart, currentX, y);
-          currentX += ctx.measureText(sanitizedPart).width;
-        }
-      });
-    });
-    
-    // Add subtle branding at bottom with Twitter-friendly monospace font
-    ctx.fillStyle = contentType === "poll" ? "#ffffff" : "#666666";
-    ctx.font = "14px 'DejaVu Sans Mono', 'Courier New', monospace";
-    ctx.fillText("@dev_patterns", 20, config.IMAGE.HEIGHT - 20);
-    
-    // Ensure all drawing is complete before converting
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Convert to buffer with Twitter-optimized settings
-    const buffer = canvas.toBuffer('image/png', {
-      compressionLevel: 9, // Maximum compression for smaller file size
-      filters: canvas.PNG_FILTER_NONE,
-      resolution: 72, // Standard web resolution
-      background: gradient ? undefined : '#ffffff' // Use gradient or solid background
-    });
-    
-    return buffer;
+    // Use only the most reliable system fonts that are guaranteed to work
+    const fonts = [
+      `${weight} ${size}px Arial`,
+      `${weight} ${size}px Helvetica`,
+      `${weight} ${size}px sans-serif`,
+      `${weight} ${size}px system-ui`
+    ];
+    return fonts.join(', ');
   } catch (error) {
-    console.error("Error creating aesthetic text image:", error);
-    return null;
+    console.warn("⚠️ Font configuration error, using fallback:", error.message);
+    return `${weight} ${size}px Arial`;
   }
 }
 
-// Create visual content (code snippet image)
-async function createCodeImage(code, topic, detailedExample = null) {
-  try {
-    // Explicitly set canvas size
-    const canvas = createCanvas(config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
-    canvas.width = config.IMAGE.WIDTH;
-    canvas.height = config.IMAGE.HEIGHT;
-    
-    const ctx = canvas.getContext("2d");
-    
-    // Test font availability with a simple text render
-    ctx.font = getReliableFont(16);
-    const testText = "Test";
-    const testMetrics = ctx.measureText(testText);
-    
-    // If font rendering fails (width is 0), use a simpler font
-    if (testMetrics.width === 0) {
-      console.warn("⚠️ Font rendering issue detected, using fallback fonts");
-      // Try different font options
-      const fontOptions = [
-        "16px sans-serif",
-        "16px Arial",
-        "16px Helvetica",
-        "16px system-ui"
-      ];
-      
-      for (const font of fontOptions) {
-        ctx.font = font;
-        const metrics = ctx.measureText(testText);
-        if (metrics.width > 0) {
-          console.log(`✅ Using font: ${font}`);
-          break;
-        }
-      }
+// Test font rendering and return a working font
+function getWorkingFont(ctx, size, weight = 'normal') {
+  const testText = "Test";
+  const fontOptions = [
+    `${weight} ${size}px Arial`,
+    `${weight} ${size}px Helvetica`,
+    `${weight} ${size}px sans-serif`,
+    `${weight} ${size}px system-ui`,
+    `${weight} ${size}px monospace`
+  ];
+  
+  for (const font of fontOptions) {
+    ctx.font = font;
+    const metrics = ctx.measureText(testText);
+    if (metrics.width > 0 && metrics.width < 1000) { // Reasonable width check
+      console.log(`✅ Using working font: ${font}`);
+      return font;
     }
-    
-    // Wait a moment for fonts to load (if needed)
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Background
-    ctx.fillStyle = "#1e1e1e";
-    ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
-    
-    // Header with branding
-    ctx.fillStyle = "#ffffff";
-    ctx.font = getReliableFont(20, 'bold');
-    ctx.fillText(sanitizeForTwitter(`${topic.name} Tip`), 20, 30);
-    
-    // Branding
-    ctx.fillStyle = "#00d4ff";
-    ctx.font = getReliableFont(14);
-    ctx.fillText(sanitizeForTwitter("@dev_patterns"), config.IMAGE.WIDTH - 120, 30);
-    
-    // Code background with border
-    ctx.fillStyle = "#2d2d2d";
-    ctx.fillRect(20, 45, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 90);
-    
-    // Code border
-    ctx.strokeStyle = "#444444";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(20, 45, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 90);
-    
-    // Code text with reliable monospace font
-    ctx.fillStyle = "#d4d4d4";
-    ctx.font = getReliableFont(16, 'normal');
-    
-    const lines = code.split('\n');
-    const maxLines = config.IMAGE.MAX_CODE_LINES;
-    const displayLines = lines.slice(0, maxLines);
-    
-    // Calculate available space for code with equal margins
-    const codeStartY = 70; // 25px from top border (45 + 25)
-    const codeEndY = detailedExample ? config.IMAGE.HEIGHT - 160 : config.IMAGE.HEIGHT - 50;
-    
-    displayLines.forEach((line, index) => {
-      const y = codeStartY + (index * 18); // Slightly tighter spacing for more content
-      if (y < codeEndY) {
-        const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
-        // Clean the line for better rendering and Twitter compatibility
-        const cleanLine = truncatedLine
-          .replace(/[^\x20-\x7E]/g, ' ') // Replace non-printable chars
-          .replace(/`/g, "'") // Replace backticks
-          .replace(/"/g, "'") // Replace quotes
-          .replace(/[^\w\s\-_.,;:(){}[\]=+<>!@#$%^&*|\\/]/g, ' ') // Replace any other problematic chars
-          .replace(/[^\x20-\x7E]/g, ' ') // Double-check for any remaining non-ASCII
-          .trim(); // Remove leading/trailing whitespace
-        ctx.fillText(sanitizeForTwitter(cleanLine), 30, y);
-      }
-    });
-    
-    // Add detailed example if provided
-    if (detailedExample && detailedExample.length > 0) {
-      // Example title
-      ctx.fillStyle = "#4a9eff";
-      ctx.font = getReliableFont(16, 'bold');
-      ctx.fillText(sanitizeForTwitter("Advanced Implementation:"), 30, codeEndY + 20);
-      
-      // Example code
-      ctx.fillStyle = "#e6e6e6";
-      ctx.font = getReliableFont(13, 'normal');
-      const exampleLines = detailedExample.split('\n');
-      exampleLines.forEach((line, index) => {
-        const y = codeEndY + 45 + (index * 16); // Tighter spacing for more content
-        if (y < config.IMAGE.HEIGHT - 50) { // Added 20px margin from bottom
-          const truncatedLine = line.substring(0, config.IMAGE.MAX_LINE_LENGTH);
-          // Clean the line for better rendering and Twitter compatibility
-          const cleanLine = truncatedLine
-            .replace(/[^\x20-\x7E]/g, ' ') // Replace non-printable chars
-            .replace(/`/g, "'") // Replace backticks
-            .replace(/"/g, "'") // Replace quotes
-            .replace(/[^\w\s\-_.,;:(){}[\]=+<>!@#$%^&*|\\/]/g, ' ') // Replace any other problematic chars
-            .replace(/[^\x20-\x7E]/g, ' ') // Double-check for any remaining non-ASCII
-            .trim(); // Remove leading/trailing whitespace
-          ctx.fillText(sanitizeForTwitter(cleanLine), 30, y);
-        }
-      });
-    }
-    
-    // Footer with branding
-    ctx.fillStyle = "#888888";
-    ctx.font = getReliableFont(12, 'normal');
-    ctx.fillText(sanitizeForTwitter("Follow @dev_patterns for more tips!"), 20, config.IMAGE.HEIGHT - 15);
-    
-    // Ensure all drawing is complete before converting
-    await new Promise(resolve => setTimeout(resolve, 150));
-    
-    // Convert to buffer with Twitter-optimized settings
-    const buffer = canvas.toBuffer('image/png', {
-      compressionLevel: 9, // Maximum compression for smaller file size
-      filters: canvas.PNG_FILTER_NONE,
-      resolution: 72, // Standard web resolution
-      background: '#1e1e1e' // Ensure background is solid
-    });
-    
-    return buffer;
-  } catch (error) {
-    console.error("Error creating code image:", error);
-    return null;
   }
+  
+  // Last resort fallback
+  console.warn("⚠️ All fonts failed, using basic fallback");
+  return `${weight} ${size}px Arial`;
 }
 
 // Generate a high-quality dev tip with topic rotation and A/B testing
@@ -588,24 +303,6 @@ function sanitizeForTwitter(text) {
     .replace(/[^\x20-\x7E]/g, ' ') // Replace all non-ASCII with spaces
     .replace(/\s+/g, ' ') // Normalize whitespace
     .trim();
-}
-
-// Get reliable font stack that works without fontconfig
-function getReliableFont(size, weight = 'normal') {
-  try {
-    // Use only system fonts that don't require fontconfig
-    const fonts = [
-      `${weight} ${size}px system-ui`,
-      `${weight} ${size}px sans-serif`,
-      `${weight} ${size}px Arial`,
-      `${weight} ${size}px Helvetica`,
-      `${weight} ${size}px monospace`
-    ];
-    return fonts.join(', ');
-  } catch (error) {
-    console.warn("⚠️ Font configuration error, using fallback:", error.message);
-    return `${weight} ${size}px sans-serif`;
-  }
 }
 
 // Generate comprehensive advanced example for image
@@ -970,13 +667,20 @@ async function postWithRateLimitWait(tweetData) {
         }
         
         if (imageBuffer && imageBuffer.length > 0) {
-          // Ensure proper encoding for Twitter API
-          const media = await client.v1.uploadMedia(imageBuffer, { 
-            mimeType: 'image/png',
-            target: 'tweet'
-          });
-          mediaId = media;
-          console.log("📸 Image uploaded successfully");
+          // Validate buffer before upload
+          if (imageBuffer instanceof Buffer && imageBuffer.length > 1000) {
+            console.log(`📊 Image buffer size: ${imageBuffer.length} bytes`);
+            
+            // Ensure proper encoding for Twitter API
+            const media = await client.v1.uploadMedia(imageBuffer, { 
+              mimeType: 'image/png',
+              target: 'tweet'
+            });
+            mediaId = media;
+            console.log("📸 Image uploaded successfully");
+          } else {
+            console.warn("⚠️ Image buffer is invalid or too small, posting text only");
+          }
         } else {
           console.warn("⚠️ Image buffer is empty, posting text only");
         }
@@ -1070,9 +774,12 @@ async function postWithRateLimitWait(tweetData) {
               imageBuffer = await createAestheticTextImage(tweetData.text, contentType);
             }
             
-            if (imageBuffer) {
-              const media = await client.v1.uploadMedia(imageBuffer, { mimeType: 'image/png' });
-              mediaId = media;
+            if (imageBuffer && imageBuffer.length > 0) {
+              // Validate buffer before upload
+              if (imageBuffer instanceof Buffer && imageBuffer.length > 1000) {
+                const media = await client.v1.uploadMedia(imageBuffer, { mimeType: 'image/png' });
+                mediaId = media;
+              }
             }
           } catch (imageError) {
             console.warn("⚠️ Could not create image on retry");
