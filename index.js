@@ -13,9 +13,9 @@ const threadCreator = require("./thread-creator");
 const trendingAnalyzer = require("./trending-analyzer");
 require("dotenv").config();
 
-// Handle fontconfig errors by setting environment variables
-process.env.FONTCONFIG_PATH = '/etc/fonts';
+// Set fontconfig to prevent font loading errors
 process.env.FONTCONFIG_FILE = '/etc/fonts/fonts.conf';
+process.env.FONTCONFIG_PATH = '/etc/fonts';
 
 // Initialize analytics
 analytics.initializeAnalytics();
@@ -827,57 +827,37 @@ async function createAestheticTextImage(text, contentType = "text") {
     const ctx = canvas.getContext("2d");
     
     // Wait for canvas to be ready
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Test and get a working font
+    // Test and get a working font with more robust testing
     const workingFont = getWorkingFont(ctx, 24, 'bold');
     ctx.font = workingFont;
     
-    // Create dynamic gradient backgrounds based on content type
-    let gradient;
-    const gradientDirection = Math.random() > 0.5 ? 'horizontal' : 'vertical';
-    
-    if (contentType === "poll") {
-      // Darker blue gradient for polls with better contrast
-      if (gradientDirection === 'horizontal') {
-        gradient = ctx.createLinearGradient(0, 0, config.IMAGE.WIDTH, 0);
-      } else {
-        gradient = ctx.createLinearGradient(0, 0, 0, config.IMAGE.HEIGHT);
-      }
-      gradient.addColorStop(0, "#1976d2"); // Darker blue
-      gradient.addColorStop(0.5, "#42a5f5"); // Medium blue
-      gradient.addColorStop(1, "#1976d2"); // Darker blue
-    } else {
-      // Dynamic gradient for normal text posts
-      const colors = [
-        ["#f3e5f5", "#e1bee7", "#ce93d8"], // Purple theme
-        ["#e8f5e8", "#c8e6c9", "#a5d6a7"], // Green theme
-        ["#fff3e0", "#ffe0b2", "#ffcc80"], // Orange theme
-        ["#e3f2fd", "#bbdefb", "#90caf9"], // Light blue theme
-        ["#fce4ec", "#f8bbd9", "#f48fb1"]  // Pink theme
-      ];
-      const colorTheme = colors[Math.floor(Math.random() * colors.length)];
-      
-      if (gradientDirection === 'horizontal') {
-        gradient = ctx.createLinearGradient(0, 0, config.IMAGE.WIDTH, 0);
-      } else {
-        gradient = ctx.createLinearGradient(0, 0, 0, config.IMAGE.HEIGHT);
-      }
-      gradient.addColorStop(0, colorTheme[0]);
-      gradient.addColorStop(0.5, colorTheme[1]);
-      gradient.addColorStop(1, colorTheme[2]);
+    // Verify font is actually working by testing text rendering
+    const testText = "Test";
+    const testMetrics = ctx.measureText(testText);
+    if (testMetrics.width === 0) {
+      console.warn("⚠️ Font rendering failed, using basic fallback");
+      ctx.font = "bold 24px Arial";
     }
     
-    // Fill background with gradient
-    ctx.fillStyle = gradient;
+    // Create a solid background instead of gradient for better reliability
+    let backgroundColor;
+    if (contentType === "poll") {
+      backgroundColor = "#1976d2"; // Blue for polls
+    } else {
+      const colors = ["#f3e5f5", "#e8f5e8", "#fff3e0", "#e3f2fd", "#fce4ec"];
+      backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    }
+    
+    // Fill background with solid color
+    ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
     
-    // Add subtle overlay for better text readability
-    const overlay = ctx.createLinearGradient(0, 0, 0, config.IMAGE.HEIGHT);
-    overlay.addColorStop(0, "rgba(255, 255, 255, 0.1)");
-    overlay.addColorStop(1, "rgba(255, 255, 255, 0.05)");
-    ctx.fillStyle = overlay;
-    ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+    // Add a subtle border for better definition
+    ctx.strokeStyle = "#cccccc";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
     
     // Set text color based on content type
     if (contentType === "poll") {
@@ -890,7 +870,7 @@ async function createAestheticTextImage(text, contentType = "text") {
     const cleanText = sanitizeForTwitter(text.replace(/#\w+/g, '').trim());
     
     // Split text into lines that fit the canvas width
-    const maxWidth = config.IMAGE.WIDTH - 80; // 40px margin on each side
+    const maxWidth = config.IMAGE.WIDTH - 100; // 50px margin on each side
     const words = cleanText.split(' ');
     const lines = [];
     let currentLine = '';
@@ -914,13 +894,13 @@ async function createAestheticTextImage(text, contentType = "text") {
     }
     
     // Center the text vertically and horizontally
-    const lineHeight = 32;
+    const lineHeight = 35;
     const totalHeight = lines.length * lineHeight;
     const startY = (config.IMAGE.HEIGHT - totalHeight) / 2;
     
-    // Render text with simplified emoji handling
+    // Render text with simplified approach
     lines.forEach((line, index) => {
-      const y = startY + (index * lineHeight) + 24; // +24 for font baseline
+      const y = startY + (index * lineHeight) + 30; // +30 for font baseline
       
       // Use the working font for rendering
       ctx.font = workingFont;
@@ -934,25 +914,93 @@ async function createAestheticTextImage(text, contentType = "text") {
       ctx.fillText(line, x, y);
     });
     
-    // Add subtle branding at bottom with working font
+    // Add branding at bottom
     ctx.fillStyle = contentType === "poll" ? "#ffffff" : "#666666";
     ctx.font = getWorkingFont(ctx, 14, 'normal');
     ctx.fillText("@dev_patterns", 20, config.IMAGE.HEIGHT - 20);
     
     // Ensure all drawing is complete before converting
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 200));
     
     // Convert to buffer with Twitter-optimized settings
     const buffer = canvas.toBuffer('image/png', {
-      compressionLevel: 9, // Maximum compression for smaller file size
+      compressionLevel: 6, // Reduced compression for better quality
       filters: canvas.PNG_FILTER_NONE,
-      resolution: 72, // Standard web resolution
-      background: gradient ? undefined : '#ffffff' // Use gradient or solid background
+      resolution: 72,
+      background: backgroundColor
     });
+    
+    // Validate buffer
+    if (!buffer || buffer.length < 1000) {
+      console.warn("⚠️ Generated buffer is too small, creating fallback image");
+      return createFallbackImage(text, contentType);
+    }
     
     return buffer;
   } catch (error) {
     console.error("Error creating aesthetic text image:", error);
+    return createFallbackImage(text, contentType);
+  }
+}
+
+// Create fallback image with basic rendering
+async function createFallbackImage(text, contentType = "text") {
+  try {
+    const canvas = createCanvas(config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+    canvas.width = config.IMAGE.WIDTH;
+    canvas.height = config.IMAGE.HEIGHT;
+    
+    const ctx = canvas.getContext("2d");
+    
+    // Simple background
+    ctx.fillStyle = contentType === "poll" ? "#1976d2" : "#f0f0f0";
+    ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+    
+    // Simple text
+    ctx.fillStyle = contentType === "poll" ? "#ffffff" : "#000000";
+    ctx.font = "bold 20px Arial";
+    
+    const cleanText = text.replace(/#\w+/g, '').trim();
+    const words = cleanText.split(' ');
+    const lines = [];
+    let currentLine = '';
+    
+    words.forEach(word => {
+      const testLine = currentLine + (currentLine ? ' ' : '') + word;
+      const metrics = ctx.measureText(testLine);
+      
+      if (metrics.width > config.IMAGE.WIDTH - 100 && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    });
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    // Render lines
+    lines.forEach((line, index) => {
+      const y = 150 + (index * 30);
+      const x = (config.IMAGE.WIDTH - ctx.measureText(line).width) / 2;
+      ctx.fillText(line, x, y);
+    });
+    
+    // Add branding
+    ctx.fillStyle = contentType === "poll" ? "#ffffff" : "#666666";
+    ctx.font = "14px Arial";
+    ctx.fillText("@dev_patterns", 20, config.IMAGE.HEIGHT - 20);
+    
+    const buffer = canvas.toBuffer('image/png', {
+      compressionLevel: 6,
+      filters: canvas.PNG_FILTER_NONE,
+      resolution: 72
+    });
+    
+    return buffer;
+  } catch (error) {
+    console.error("Error creating fallback image:", error);
     return null;
   }
 }
@@ -968,11 +1016,19 @@ async function createCodeImage(code, topic, detailedExample = null) {
     const ctx = canvas.getContext("2d");
     
     // Wait for canvas to be ready
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     // Test and get a working font
     const workingFont = getWorkingFont(ctx, 16, 'normal');
     ctx.font = workingFont;
+    
+    // Verify font is working
+    const testText = "Test";
+    const testMetrics = ctx.measureText(testText);
+    if (testMetrics.width === 0) {
+      console.warn("⚠️ Font rendering failed in code image, using fallback");
+      ctx.font = "16px Arial";
+    }
     
     // Background
     ctx.fillStyle = "#1e1e1e";
@@ -1059,19 +1115,78 @@ async function createCodeImage(code, topic, detailedExample = null) {
     ctx.fillText(sanitizeForTwitter("Follow @dev_patterns for more tips!"), 20, config.IMAGE.HEIGHT - 15);
     
     // Ensure all drawing is complete before converting
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 200));
     
     // Convert to buffer with proper settings
     const buffer = canvas.toBuffer('image/png', {
-      compressionLevel: 9, // Maximum compression for smaller file size
+      compressionLevel: 6, // Reduced compression for better quality
       filters: canvas.PNG_FILTER_NONE,
       resolution: 72, // Standard web resolution
       background: '#1e1e1e' // Ensure background is solid
     });
     
+    // Validate buffer
+    if (!buffer || buffer.length < 1000) {
+      console.warn("⚠️ Generated code buffer is too small, creating fallback");
+      return createFallbackCodeImage(code, topic);
+    }
+    
     return buffer;
   } catch (error) {
     console.error("Error creating code image:", error);
+    return createFallbackCodeImage(code, topic);
+  }
+}
+
+// Create fallback code image
+async function createFallbackCodeImage(code, topic) {
+  try {
+    const canvas = createCanvas(config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+    canvas.width = config.IMAGE.WIDTH;
+    canvas.height = config.IMAGE.HEIGHT;
+    
+    const ctx = canvas.getContext("2d");
+    
+    // Simple background
+    ctx.fillStyle = "#1e1e1e";
+    ctx.fillRect(0, 0, config.IMAGE.WIDTH, config.IMAGE.HEIGHT);
+    
+    // Header
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 20px Arial";
+    ctx.fillText(`${topic.name} Tip`, 20, 30);
+    
+    // Code area
+    ctx.fillStyle = "#2d2d2d";
+    ctx.fillRect(20, 45, config.IMAGE.WIDTH - 40, config.IMAGE.HEIGHT - 90);
+    
+    // Code text
+    ctx.fillStyle = "#d4d4d4";
+    ctx.font = "16px Arial";
+    
+    const lines = code.split('\n');
+    lines.forEach((line, index) => {
+      const y = 70 + (index * 18);
+      if (y < config.IMAGE.HEIGHT - 50) {
+        const cleanLine = line.substring(0, 80).replace(/[^\x20-\x7E]/g, ' ').trim();
+        ctx.fillText(cleanLine, 30, y);
+      }
+    });
+    
+    // Footer
+    ctx.fillStyle = "#888888";
+    ctx.font = "12px Arial";
+    ctx.fillText("Follow @dev_patterns for more tips!", 20, config.IMAGE.HEIGHT - 15);
+    
+    const buffer = canvas.toBuffer('image/png', {
+      compressionLevel: 6,
+      filters: canvas.PNG_FILTER_NONE,
+      resolution: 72
+    });
+    
+    return buffer;
+  } catch (error) {
+    console.error("Error creating fallback code image:", error);
     return null;
   }
 }
