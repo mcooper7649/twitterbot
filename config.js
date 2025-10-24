@@ -27,11 +27,11 @@ module.exports = {
     HEIGHT: 400,
     MAX_CODE_LINES: 20, // Increased for more detailed content
     MAX_LINE_LENGTH: 85, // Slightly longer lines
-    ENABLED: true // Set to false to disable image generation
+    ENABLED: true // Re-enabled with basic font testing
   },
   
-  // Similarity threshold for duplicate detection
-  SIMILARITY_THRESHOLD: 0.85,
+  // Similarity threshold for duplicate detection (lowered to allow more variety)
+  SIMILARITY_THRESHOLD: 0.70,
   
   // OpenAI settings
   OPENAI: {

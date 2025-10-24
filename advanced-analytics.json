@@ -3,67 +3,224 @@
     "Content Length Test": {
       "variants": {
         "B": {
-          "tests": 3,
-          "totalValue": 0.2720034554875904,
-          "averageValue": 0.09066781849586347,
+          "tests": 4,
+          "totalValue": 0.3562767459576926,
+          "averageValue": 0.08906918648942315,
           "metrics": {
             "engagement_rate": [
               0.08226426217972521,
               0.09278401256685044,
-              0.09695518074101477
+              0.09695518074101477,
+              0.08427329047010217
+            ]
+          }
+        },
+        "A": {
+          "tests": 12,
+          "totalValue": 1.1782317615948812,
+          "averageValue": 0.09818598013290676,
+          "metrics": {
+            "engagement_rate": [
+              0.1040455679764346,
+              0.11241858487932226,
+              0.073623987565621,
+              0.1126981437882928,
+              0.06970889970600445,
+              0.09329208403223802,
+              0.11138920039504605,
+              0.12119437397496105,
+              0.08357952910288842,
+              0.11769166421667286,
+              0.1000461206937737,
+              0.07854360526362601
             ]
           }
         }
       },
       "startDate": "2025-08-03T21:51:51.258Z",
-      "totalTests": 3
+      "totalTests": 16
     },
     "Hashtag Count Test": {
       "variants": {
         "B": {
-          "tests": 3,
-          "totalValue": 4590,
-          "averageValue": 1530,
+          "tests": 16,
+          "totalValue": 44450,
+          "averageValue": 2778.125,
           "metrics": {
             "reach": [
               1190,
               2269,
-              1131
+              1131,
+              1458,
+              4314,
+              2052,
+              1654,
+              5303,
+              5681,
+              1033,
+              1994,
+              3396,
+              3724,
+              2808,
+              1109,
+              5334
             ]
           }
         }
       },
       "startDate": "2025-08-03T21:51:51.265Z",
-      "totalTests": 3
+      "totalTests": 16
     }
   },
   "performanceMetrics": {
     "tips": {
-      "totalPosts": 3,
-      "averageEngagement": 0.09066781849586347,
-      "totalEngagement": 0.2720034554875904,
+      "totalPosts": 16,
+      "averageEngagement": 0.09590678172203586,
+      "totalEngagement": 1.5345085075525737,
       "topics": {
         "React": {
-          "posts": 2,
-          "totalEngagement": 0.17921944292074,
-          "averageEngagement": 0.08960972146037
+          "posts": 5,
+          "totalEngagement": 0.4752636775967244,
+          "averageEngagement": 0.09505273551934487
         },
         "AI": {
+          "posts": 2,
+          "totalEngagement": 0.20548215635514325,
+          "averageEngagement": 0.10274107817757162
+        },
+        "Security": {
+          "posts": 2,
+          "totalEngagement": 0.17756537450234017,
+          "averageEngagement": 0.08878268725117008
+        },
+        "JavaScript": {
           "posts": 1,
-          "totalEngagement": 0.09278401256685044,
-          "averageEngagement": 0.09278401256685044
+          "totalEngagement": 0.1040455679764346,
+          "averageEngagement": 0.1040455679764346
+        },
+        "Git": {
+          "posts": 1,
+          "totalEngagement": 0.073623987565621,
+          "averageEngagement": 0.073623987565621
+        },
+        "Node.js": {
+          "posts": 2,
+          "totalEngagement": 0.14825250496963047,
+          "averageEngagement": 0.07412625248481523
+        },
+        "Flutter": {
+          "posts": 1,
+          "totalEngagement": 0.11138920039504605,
+          "averageEngagement": 0.11138920039504605
+        },
+        "Python": {
+          "posts": 2,
+          "totalEngagement": 0.2388860381916339,
+          "averageEngagement": 0.11944301909581695
         }
       }
     },
     "interactive": {
-      "totalPosts": 1,
-      "averageEngagement": 0.15095171927102904,
-      "totalEngagement": 0.15095171927102904,
+      "totalPosts": 62,
+      "averageEngagement": 0.14554244403215896,
+      "totalEngagement": 9.023631529993855,
       "topics": {
         "Node.js": {
+          "posts": 11,
+          "totalEngagement": 1.4781812014262803,
+          "averageEngagement": 0.13438010922057095
+        },
+        "Flutter": {
+          "posts": 3,
+          "totalEngagement": 0.42988796024110054,
+          "averageEngagement": 0.1432959867470335
+        },
+        "JavaScript": {
+          "posts": 11,
+          "totalEngagement": 1.697731765937959,
+          "averageEngagement": 0.15433925144890537
+        },
+        "React": {
+          "posts": 8,
+          "totalEngagement": 1.1134614351542584,
+          "averageEngagement": 0.1391826793942823
+        },
+        "Git": {
+          "posts": 4,
+          "totalEngagement": 0.42081036778608266,
+          "averageEngagement": 0.10520259194652067
+        },
+        "Docker": {
+          "posts": 3,
+          "totalEngagement": 0.33409607791549545,
+          "averageEngagement": 0.11136535930516515
+        },
+        "AI": {
+          "posts": 5,
+          "totalEngagement": 0.7252580123303398,
+          "averageEngagement": 0.14505160246606796
+        },
+        "Python": {
+          "posts": 14,
+          "totalEngagement": 2.3573072891102846,
+          "averageEngagement": 0.16837909207930604
+        },
+        "Security": {
+          "posts": 3,
+          "totalEngagement": 0.4668974200920586,
+          "averageEngagement": 0.15563247336401953
+        }
+      }
+    },
+    "community": {
+      "totalPosts": 38,
+      "averageEngagement": 0.11684322900456572,
+      "totalEngagement": 4.440042702173497,
+      "topics": {
+        "Docker": {
+          "posts": 7,
+          "totalEngagement": 0.6879598646854351,
+          "averageEngagement": 0.09827998066934787
+        },
+        "JavaScript": {
+          "posts": 8,
+          "totalEngagement": 1.0211982774701724,
+          "averageEngagement": 0.12764978468377156
+        },
+        "Python": {
+          "posts": 7,
+          "totalEngagement": 0.9843595331903775,
+          "averageEngagement": 0.14062279045576823
+        },
+        "Flutter": {
           "posts": 1,
-          "totalEngagement": 0.15095171927102904,
-          "averageEngagement": 0.15095171927102904
+          "totalEngagement": 0.10454119961002406,
+          "averageEngagement": 0.10454119961002406
+        },
+        "AI": {
+          "posts": 7,
+          "totalEngagement": 0.785007490666998,
+          "averageEngagement": 0.11214392723814258
+        },
+        "Git": {
+          "posts": 3,
+          "totalEngagement": 0.24240605395174167,
+          "averageEngagement": 0.08080201798391388
+        },
+        "React": {
+          "posts": 3,
+          "totalEngagement": 0.3634871165917397,
+          "averageEngagement": 0.12116237219724657
+        },
+        "Security": {
+          "posts": 1,
+          "totalEngagement": 0.1345556473905882,
+          "averageEngagement": 0.1345556473905882
+        },
+        "Node.js": {
+          "posts": 1,
+          "totalEngagement": 0.11652751861642147,
+          "averageEngagement": 0.11652751861642147
         }
       }
     }
@@ -71,5 +228,5 @@
   "trendingTopics": [],
   "seasonalEvents": {},
   "threadPerformance": {},
-  "lastUpdated": "2025-08-05T13:11:01.045Z"
+  "lastUpdated": "2025-10-24T15:51:00.237Z"
 }

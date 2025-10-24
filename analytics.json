@@ -1,9 +1,15 @@
 {
-  "totalPosts": 4,
+  "totalPosts": 116,
   "topicsPosted": {
-    "React": 2,
-    "AI": 1,
-    "Node.js": 1
+    "React": 16,
+    "AI": 14,
+    "Node.js": 14,
+    "Flutter": 5,
+    "Security": 6,
+    "JavaScript": 20,
+    "Docker": 10,
+    "Python": 23,
+    "Git": 8
   },
   "contentTypes": {
     "tips": 0,
@@ -31,14 +37,376 @@
       }
     },
     "2025-08-05": {
+      "posts": 8,
+      "topics": {
+        "Node.js": 1,
+        "Flutter": 1,
+        "Security": 1,
+        "JavaScript": 3,
+        "Docker": 1,
+        "Python": 1
+      },
+      "contentTypes": {
+        "interactive": 3,
+        "tips": 2,
+        "community": 3
+      }
+    },
+    "2025-08-06": {
+      "posts": 4,
+      "topics": {
+        "JavaScript": 2,
+        "React": 2
+      },
+      "contentTypes": {
+        "community": 2,
+        "tips": 1,
+        "interactive": 1
+      }
+    },
+    "2025-09-21": {
+      "posts": 8,
+      "topics": {
+        "Git": 3,
+        "AI": 1,
+        "Python": 1,
+        "JavaScript": 1,
+        "Node.js": 1,
+        "Docker": 1
+      },
+      "contentTypes": {
+        "tips": 3,
+        "community": 2,
+        "interactive": 3
+      }
+    },
+    "2025-09-22": {
+      "posts": 6,
+      "topics": {
+        "Security": 1,
+        "JavaScript": 2,
+        "AI": 1,
+        "Python": 2
+      },
+      "contentTypes": {
+        "tips": 1,
+        "community": 1,
+        "interactive": 4
+      }
+    },
+    "2025-09-23": {
+      "posts": 6,
+      "topics": {
+        "Python": 2,
+        "Node.js": 1,
+        "Flutter": 2,
+        "AI": 1
+      },
+      "contentTypes": {
+        "interactive": 2,
+        "tips": 1,
+        "community": 3
+      }
+    },
+    "2025-09-24": {
+      "posts": 3,
+      "topics": {
+        "Git": 1,
+        "AI": 1,
+        "Node.js": 1
+      },
+      "contentTypes": {
+        "community": 1,
+        "interactive": 2
+      }
+    },
+    "2025-09-25": {
+      "posts": 7,
+      "topics": {
+        "Python": 2,
+        "Node.js": 2,
+        "JavaScript": 2,
+        "AI": 1
+      },
+      "contentTypes": {
+        "community": 2,
+        "interactive": 5
+      }
+    },
+    "2025-09-26": {
+      "posts": 5,
+      "topics": {
+        "AI": 2,
+        "Flutter": 1,
+        "Node.js": 1,
+        "React": 1
+      },
+      "contentTypes": {
+        "community": 3,
+        "interactive": 2
+      }
+    },
+    "2025-09-27": {
+      "posts": 4,
+      "topics": {
+        "Docker": 2,
+        "Python": 2
+      },
+      "contentTypes": {
+        "community": 1,
+        "interactive": 3
+      }
+    },
+    "2025-09-28": {
+      "posts": 4,
+      "topics": {
+        "Python": 1,
+        "Node.js": 1,
+        "JavaScript": 1,
+        "React": 1
+      },
+      "contentTypes": {
+        "community": 2,
+        "interactive": 2
+      }
+    },
+    "2025-09-29": {
+      "posts": 6,
+      "topics": {
+        "React": 2,
+        "JavaScript": 2,
+        "Security": 1,
+        "Python": 1
+      },
+      "contentTypes": {
+        "community": 3,
+        "interactive": 3
+      }
+    },
+    "2025-09-30": {
+      "posts": 2,
+      "topics": {
+        "JavaScript": 1,
+        "React": 1
+      },
+      "contentTypes": {
+        "interactive": 1,
+        "community": 1
+      }
+    },
+    "2025-10-01": {
+      "posts": 4,
+      "topics": {
+        "Python": 2,
+        "Docker": 1,
+        "Git": 1
+      },
+      "contentTypes": {
+        "interactive": 1,
+        "community": 3
+      }
+    },
+    "2025-10-02": {
+      "posts": 4,
+      "topics": {
+        "Node.js": 1,
+        "Docker": 1,
+        "Security": 1,
+        "AI": 1
+      },
+      "contentTypes": {
+        "community": 1,
+        "interactive": 3
+      }
+    },
+    "2025-10-03": {
       "posts": 1,
       "topics": {
-        "Node.js": 1
+        "Git": 1
       },
       "contentTypes": {
         "interactive": 1
       }
+    },
+    "2025-10-04": {
+      "posts": 2,
+      "topics": {
+        "Python": 1,
+        "JavaScript": 1
+      },
+      "contentTypes": {
+        "interactive": 1,
+        "community": 1
+      }
+    },
+    "2025-10-05": {
+      "posts": 3,
+      "topics": {
+        "Security": 1,
+        "Python": 1,
+        "React": 1
+      },
+      "contentTypes": {
+        "interactive": 3
+      }
+    },
+    "2025-10-06": {
+      "posts": 3,
+      "topics": {
+        "AI": 1,
+        "React": 2
+      },
+      "contentTypes": {
+        "interactive": 3
+      }
+    },
+    "2025-10-07": {
+      "posts": 2,
+      "topics": {
+        "Python": 1,
+        "JavaScript": 1
+      },
+      "contentTypes": {
+        "interactive": 2
+      }
+    },
+    "2025-10-08": {
+      "posts": 1,
+      "topics": {
+        "React": 1
+      },
+      "contentTypes": {
+        "interactive": 1
+      }
+    },
+    "2025-10-09": {
+      "posts": 2,
+      "topics": {
+        "Node.js": 1,
+        "Git": 1
+      },
+      "contentTypes": {
+        "interactive": 1,
+        "community": 1
+      }
+    },
+    "2025-10-11": {
+      "posts": 2,
+      "topics": {
+        "React": 1,
+        "Python": 1
+      },
+      "contentTypes": {
+        "interactive": 2
+      }
+    },
+    "2025-10-12": {
+      "posts": 2,
+      "topics": {
+        "Docker": 1,
+        "JavaScript": 1
+      },
+      "contentTypes": {
+        "community": 1,
+        "interactive": 1
+      }
+    },
+    "2025-10-13": {
+      "posts": 2,
+      "topics": {
+        "AI": 2
+      },
+      "contentTypes": {
+        "community": 2
+      }
+    },
+    "2025-10-14": {
+      "posts": 1,
+      "topics": {
+        "JavaScript": 1
+      },
+      "contentTypes": {
+        "interactive": 1
+      }
+    },
+    "2025-10-15": {
+      "posts": 3,
+      "topics": {
+        "Git": 1,
+        "Node.js": 1,
+        "Python": 1
+      },
+      "contentTypes": {
+        "interactive": 2,
+        "community": 1
+      }
+    },
+    "2025-10-16": {
+      "posts": 3,
+      "topics": {
+        "Python": 1,
+        "AI": 1,
+        "JavaScript": 1
+      },
+      "contentTypes": {
+        "interactive": 2,
+        "community": 1
+      }
+    },
+    "2025-10-17": {
+      "posts": 1,
+      "topics": {
+        "Docker": 1
+      },
+      "contentTypes": {
+        "community": 1
+      }
+    },
+    "2025-10-18": {
+      "posts": 2,
+      "topics": {
+        "Flutter": 1,
+        "Node.js": 1
+      },
+      "contentTypes": {
+        "interactive": 2
+      }
+    },
+    "2025-10-19": {
+      "posts": 3,
+      "topics": {
+        "JavaScript": 1,
+        "Security": 1,
+        "Python": 1
+      },
+      "contentTypes": {
+        "interactive": 3
+      }
+    },
+    "2025-10-21": {
+      "posts": 1,
+      "topics": {
+        "Docker": 1
+      },
+      "contentTypes": {
+        "community": 1
+      }
+    },
+    "2025-10-24": {
+      "posts": 8,
+      "topics": {
+        "Python": 2,
+        "React": 2,
+        "Docker": 1,
+        "AI": 1,
+        "Node.js": 2
+      },
+      "contentTypes": {
+        "tips": 5,
+        "community": 1,
+        "interactive": 2
+      }
     }
   },
-  "lastUpdated": "2025-08-05T13:11:01.044Z"
+  "lastUpdated": "2025-10-24T15:51:00.232Z"
 }
